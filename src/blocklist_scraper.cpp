@@ -5,15 +5,13 @@
 #include "include/blocklist_scraper.h"
 #include <iostream>
 #include <fstream>
-#include <stdexcept>
 #include <yaml-cpp/yaml.h>
 #include <curl/curl.h>
 #include <filesystem>
 #include <memory>
 #include <future>
 
-BlocklistScraper::BlocklistScraper(const std::string& config_file) : config(YAML::LoadFile(config_file)),
-                                                                     output_dir(config["output_dir"].as<std::string>()) {}
+BlocklistScraper::BlocklistScraper(const std::string& config_file) : config(YAML::LoadFile(config_file)) {}
 
 std::vector<std::vector<std::vector<std::string>>> BlocklistScraper::operator()() {
     std::cout << "Starting ThreatFeed construction..." << std::endl;
@@ -28,29 +26,10 @@ std::vector<std::vector<std::vector<std::string>>> BlocklistScraper::operator()(
 
 void BlocklistScraper::process_config() {
     std::cout << "Processing config file..." << std::endl;
-    for (const auto& entry : config["blocklist_sources"]) {
-        for (const auto& project : entry) {
-            const auto& source = project.second;
-
-            if (!source["name_prefix"] || !source["url"] || !source["postfix"] || !source["sources"]) {
-                throw std::runtime_error("Missing expected key in source configuration for project: " + project.first.as<std::string>());
-            }
-
-            auto name_prefix = source["name_prefix"].as<std::string>();
-            auto url = source["url"].as<std::string>();
-            auto postfix = source["postfix"].as<std::string>();
-
-            for (const auto& src : source["sources"]) {
-                if (!src["name"] || !src["security_level"]) {
-                    throw std::runtime_error("Missing expected key in source entry for project: " + project.first.as<std::string>());
-                }
-
-                requests.push_back({
-                                           url + "/" + src["name"].as<std::string>() + postfix + ".txt",
-                                           src["security_level"].as<int>(),
-                                           ""
-                                   });
-            }
+    for (const auto& entry : config.blocklist_sources) {
+        for (const auto& src : entry.sources) {
+            requests.push_back({entry.url + "/" + src.name + entry.postfix + ".txt",
+                                src.security_level, ""});
         }
     }
 }
@@ -104,7 +83,7 @@ void BlocklistScraper::fetch_multi() {
             }
 
             if (still_running) {
-                mc = curl_multi_poll(multi_handle.get(), NULL, 0, 1000, NULL);
+                mc = curl_multi_poll(multi_handle.get(), nullptr, 0, 1000, nullptr);
                 if (mc != CURLM_OK) {
                     std::cerr << "curl_multi_poll() failed: " << curl_multi_strerror(mc) << std::endl;
                     break;
@@ -169,18 +148,18 @@ void BlocklistScraper::merge() {
 
 void BlocklistScraper::build() {
     std::cout << "Building ThreatFeeds..." << std::endl;
-    if (!std::filesystem::exists(output_dir)) {
-        std::filesystem::create_directories(output_dir);
+    if (!std::filesystem::exists(config.output_dir)) {
+        std::filesystem::create_directories(config.output_dir);
     }
 
-    output.reserve(lists_by_security_level.size());
+    output.resize(lists_by_security_level.size());
 
     for (const auto& [security_level, _] : lists_by_security_level) {
         construct(security_level);
     }
 }
 
-void BlocklistScraper::construct(int security_level) {
+void BlocklistScraper::construct(unsigned int security_level) {
     std::cout << "Resizing files to fit on FortiGate..." << std::endl;
 
     auto& lines = lists_by_security_level[security_level];
@@ -191,14 +170,14 @@ void BlocklistScraper::construct(int security_level) {
 
     std::cout << "Security Level " << security_level << " Files: " << file_count << ", LPF: " << lines_per_file << std::endl;
 
-    output[security_level].reserve(file_count);
+    output[security_level].resize(file_count);
 
     auto iter = lines.begin();
     for (size_t i = 0; i < file_count; ++i) {
         output[security_level][i].reserve(lines_per_file + extra);
 
         std::string filename = std::filesystem::current_path().string()
-                + '/' + output_dir
+                + '/' + config.output_dir
                 + "/security_level_" + std::to_string(security_level)
                 + "_part_" + std::to_string(i + 1) + ".txt";
 

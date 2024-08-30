@@ -6,12 +6,12 @@
 #define FORTI_HOLE_FORTI_HOLE_H
 
 #include "include/blocklist_scraper.h"
+#include "include/config.h"
 #include <yaml-cpp/yaml.h>
 
 class FortiHole {
     BlocklistScraper scraper;
-    YAML::Node config;
-    unsigned int min_category, max_category, base_category;
+    Config config;
 
     static void remove_extra_files(const std::string& naming_prefix, unsigned int index);
 

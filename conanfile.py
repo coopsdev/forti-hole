@@ -12,7 +12,7 @@ class Pkg(ConanFile):
     topics = ("c++", "security", "DNS blocklists", "Pi-hole")
     settings = "os", "compiler", "arch", "build_type"
     generators = "PkgConfigDeps", "MesonToolchain"
-    exports_sources = "meson.build", "include/*", "main.cpp"
+    exports_sources = "meson.build", "include/*", "main.cpp", "config.yaml"
     implements = ["auto_header_only"]
 
     def layout(self):

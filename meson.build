@@ -1,6 +1,6 @@
 project('forti-hole', 'cpp',
         version : '0.1.2',
-        default_options : ['warning_level=3', 'cpp_std=c++2a'])
+        default_options : ['warning_level=3', 'cpp_std=c++23'])
 
 source_root = meson.source_root()
 

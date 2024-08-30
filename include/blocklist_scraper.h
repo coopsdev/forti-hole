@@ -12,6 +12,7 @@
 #include <regex>
 #include <yaml-cpp/yaml.h>
 #include <mutex>
+#include "config.h"
 
 class BlocklistScraper {
     friend class FortiHole;
@@ -22,14 +23,13 @@ class BlocklistScraper {
 
     struct Request {
         std::string url;
-        int security_level;
+        unsigned int security_level;
         std::string response;
     };
 
-    YAML::Node config;
-    std::string output_dir;
+    Config config;
     std::vector<Request> requests{};
-    std::unordered_map<int, std::unordered_set<std::string>> lists_by_security_level{};
+    std::unordered_map<unsigned int, std::unordered_set<std::string>> lists_by_security_level{};
     std::vector<std::vector<std::vector<std::string>>> output{};
     std::mutex mutex;
 
@@ -39,7 +39,7 @@ class BlocklistScraper {
     void process_domains(const std::string& content, std::unordered_set<std::string>& target_set);
     void merge();
     void build();
-    void construct(int security_level);
+    void construct(unsigned int security_level);
 
 public:
     explicit BlocklistScraper(const std::string& config_file = "../config.yaml");

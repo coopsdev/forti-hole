@@ -16,9 +16,9 @@ void FortiHole::update_threat_feeds() {
 
         unsigned int num_files = lists[security_level].size();
         for (unsigned int file_index = 0; file_index < num_files; ++file_index) {
-            std::string file_name = file_name_prefix + std::to_string(file_index + 1);
-            if (!ThreatFeed::contains(file_name)) ThreatFeed::add(file_name, category);
-            ThreatFeed::update_feed(CommandEntry(file_name, lists[security_level][file_index]));
+            auto filename = file_name_prefix + std::to_string(file_index + 1);
+            if (!ThreatFeed::contains(filename)) ThreatFeed::add(filename, category);
+            ThreatFeed::update_feed({filename, lists[security_level][file_index]});
             ++category;
         }
 

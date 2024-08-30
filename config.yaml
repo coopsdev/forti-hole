@@ -5,6 +5,7 @@ categories:
   max: 221  # FortiGate defined limit DO NOT CHANGE
   base: 192  # User defined: category for security level 0, grows upward to limit
 
+# Automated policy management of DNS filters will be available soon
 forti_hole_automated_dns_filters:
   - name: Home
     security_level: 0

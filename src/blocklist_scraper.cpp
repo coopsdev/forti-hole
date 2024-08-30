@@ -20,7 +20,7 @@ std::vector<std::vector<std::vector<std::string>>> BlocklistScraper::operator()(
     process_multi();
     merge();
     build();
-    std::cout << "Successfully completed ThreatFeed construction!" << std::endl;
+    std::cout << "ThreatFeed construction finished successfully completed..." << std::endl;
     return output;
 }
 

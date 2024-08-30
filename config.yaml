@@ -1,47 +1,53 @@
 output_dir: 'output'
+
 categories:
   min: 192  # FortiGate defined limit DO NOT CHANGE
   max: 221  # FortiGate defined limit DO NOT CHANGE
   base: 192  # User defined: category for security level 0, grows upward to limit
+
+forti_hole_automated_dns_filters:
+  - name: Home
+    security_level: 0
+    policies:
+      - name: Example
+        access: block # options: [block, monitor, allow]
+
 blocklist_sources:
-  - Hagezi:
-      name_prefix: 'hagezi'
-      url: 'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock'
-      postfix: ''
-      sources:
-        - name: 'pro.plus'
-          security_level: 0
-        - name: 'tif'
-          security_level: 0
-        - name: 'ultimate'
-          security_level: 1
+  - name_prefix: 'hagezi'
+    url: 'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock'
+    postfix: ''
+    sources:
+      - name: 'pro.plus'
+        security_level: 0
+      - name: 'tif'
+        security_level: 0
+      - name: 'ultimate'
+        security_level: 1
 
-  - BlocklistProject:
-      name_prefix: 'BlocklistProject'
-      url: 'https://raw.githubusercontent.com/blocklistproject/Lists/master/adguard'
-      postfix: '-ags'
-      sources:
-        - name: 'ads'
-          security_level: 0
-        - name: 'tracking'
-          security_level: 0
-        - name: 'malware'
-          security_level: 0
-        - name: 'phishing'
-          security_level: 0
-        - name: 'ransomware'
-          security_level: 0
-        - name: 'scam'
-          security_level: 0
-        - name: 'abuse'
-          security_level: 0
-        - name: 'fraud'
-          security_level: 0
+  - name_prefix: 'BlocklistProject'
+    url: 'https://raw.githubusercontent.com/blocklistproject/Lists/master/adguard'
+    postfix: '-ags'
+    sources:
+      - name: 'ads'
+        security_level: 0
+      - name: 'tracking'
+        security_level: 0
+      - name: 'malware'
+        security_level: 0
+      - name: 'phishing'
+        security_level: 0
+      - name: 'ransomware'
+        security_level: 0
+      - name: 'scam'
+        security_level: 0
+      - name: 'abuse'
+        security_level: 0
+      - name: 'fraud'
+        security_level: 0
 
-  - StevenBlack:
-      name_prefix: 'StevenBlack'
-      url: 'https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts'
-      postfix: ''
-      sources:
-        - name: 'default'
-          security_level: 0
+  - name_prefix: 'StevenBlack'
+    url: 'https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts'
+    postfix: ''
+    sources:
+      - name: 'default'
+        security_level: 0

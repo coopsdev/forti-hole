@@ -2,8 +2,8 @@
 // Created by Cooper Larson on 8/26/24.
 //
 
-#ifndef FORTI_HOLE_SCRAPER_H
-#define FORTI_HOLE_SCRAPER_H
+#ifndef FORTI_HOLE_BLOCKLIST_SCRAPER_H
+#define FORTI_HOLE_BLOCKLIST_SCRAPER_H
 
 #include <vector>
 #include <unordered_set>
@@ -13,8 +13,8 @@
 #include <yaml-cpp/yaml.h>
 #include <mutex>
 
-class Scraper {
-    friend class FortiThreatFeedManager;
+class BlocklistScraper {
+    friend class FortiHole;
 
     static constexpr unsigned int MAX_LINES_PER_FILE = 131000;
     inline static std::regex domain_regex{R"(\|\|([^\^]*?)\^)"};
@@ -42,9 +42,9 @@ class Scraper {
     void construct(int security_level);
 
 public:
-    explicit Scraper(const std::string& config_file = "../config.yaml");
+    explicit BlocklistScraper(const std::string& config_file = "../config.yaml");
 
     std::vector<std::vector<std::vector<std::string>>> operator()();
 };
 
-#endif // FORTI_HOLE_SCRAPER_H
+#endif // FORTI_HOLE_BLOCKLIST_SCRAPER_H

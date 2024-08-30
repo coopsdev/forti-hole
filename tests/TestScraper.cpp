@@ -1,7 +1,7 @@
-#include "include/Scraper.h"
+#include "include/blocklist_scraper.h"
 #include <gtest/gtest.h>
 
 TEST(TestScraper, TestScrapeDocs) {
-    Scraper scraper;
+    BlocklistScraper scraper;
     scraper();
 }

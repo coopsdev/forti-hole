@@ -2,7 +2,7 @@
 // Created by Cooper Larson on 8/26/24.
 //
 
-#include "include/Scraper.h"
+#include "include/blocklist_scraper.h"
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -12,10 +12,10 @@
 #include <memory>
 #include <future>
 
-Scraper::Scraper(const std::string& config_file) : config(YAML::LoadFile(config_file)),
-                                                   output_dir(config["output_dir"].as<std::string>()) {}
+BlocklistScraper::BlocklistScraper(const std::string& config_file) : config(YAML::LoadFile(config_file)),
+                                                                     output_dir(config["output_dir"].as<std::string>()) {}
 
-std::vector<std::vector<std::vector<std::string>>> Scraper::operator()() {
+std::vector<std::vector<std::vector<std::string>>> BlocklistScraper::operator()() {
     std::cout << "Starting ThreatFeed construction..." << std::endl;
     process_config();
     fetch_multi();
@@ -26,7 +26,7 @@ std::vector<std::vector<std::vector<std::string>>> Scraper::operator()() {
     return output;
 }
 
-void Scraper::process_config() {
+void BlocklistScraper::process_config() {
     std::cout << "Processing config file..." << std::endl;
     for (const auto& entry : config["blocklist_sources"]) {
         for (const auto& project : entry) {
@@ -61,7 +61,7 @@ size_t write_callback(void* ptr, size_t size, size_t nmemb, void* userdata) {
     return size * nmemb;
 }
 
-void Scraper::fetch_multi() {
+void BlocklistScraper::fetch_multi() {
     std::cout << "Scraping blocklists..." << std::endl;
 
     curl_global_init(CURL_GLOBAL_ALL);
@@ -118,7 +118,7 @@ void Scraper::fetch_multi() {
     curl_global_cleanup();
 }
 
-void Scraper::process_multi() {
+void BlocklistScraper::process_multi() {
     std::cout << "Parsing response data..." << std::endl;
     for (auto& request : requests) {
         std::cout << "Parsing response data: " << request.url << std::endl;
@@ -126,7 +126,7 @@ void Scraper::process_multi() {
     }
 }
 
-void Scraper::process_domains(const std::string& content, std::unordered_set<std::string>& target_set) {
+void BlocklistScraper::process_domains(const std::string& content, std::unordered_set<std::string>& target_set) {
     const size_t length = content.length();
     const size_t num_threads = std::thread::hardware_concurrency();
     const size_t chunk_size = length / num_threads;
@@ -158,7 +158,7 @@ void Scraper::process_domains(const std::string& content, std::unordered_set<std
     for (auto& future : futures) future.get();
 }
 
-void Scraper::merge() {
+void BlocklistScraper::merge() {
     std::cout << "Consolidating data..." << std::endl;
     for (unsigned int i = lists_by_security_level.size() - 1; i > 0; --i) {
         for (const auto& item : lists_by_security_level[i]) {
@@ -167,7 +167,7 @@ void Scraper::merge() {
     }
 }
 
-void Scraper::build() {
+void BlocklistScraper::build() {
     std::cout << "Building ThreatFeeds..." << std::endl;
     if (!std::filesystem::exists(output_dir)) {
         std::filesystem::create_directories(output_dir);
@@ -180,7 +180,7 @@ void Scraper::build() {
     }
 }
 
-void Scraper::construct(int security_level) {
+void BlocklistScraper::construct(int security_level) {
     std::cout << "Resizing files to fit on FortiGate..." << std::endl;
 
     auto& lines = lists_by_security_level[security_level];

@@ -4,10 +4,11 @@
 
 #include "include/forti_hole.h"
 #include <gtest/gtest.h>
+#include <iostream>
 
-#define ALLOW_RISKY_TESTS_ON_LOCAL_DEVICE = 0L;
+#define ALLOW_RISKY_TESTS_ON_LOCAL_DEVICE false
 
-#ifdef ALLOW_RISKY_TESTS_ON_LOCAL_DEVICE
+#if ALLOW_RISKY_TESTS_ON_LOCAL_DEVICE
 
 TEST(TestFortiHole, TestPopulateThreatFeed) {
     try {

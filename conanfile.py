@@ -5,7 +5,7 @@ from conan.tools.files import copy
 
 class Pkg(ConanFile):
     name = "forti_hole"
-    version = "0.1.2"
+    version = "0.1.3"
     author = "Cooper Larson | cooper.larson1@gmail.com"
     url = ""
     description = "Pi-hole inspired DNS blacklisting tool for FortiGate external connector threat feeds."
@@ -13,7 +13,8 @@ class Pkg(ConanFile):
     settings = "os", "compiler", "arch", "build_type"
     generators = "PkgConfigDeps", "MesonToolchain"
     exports_sources = "meson.build", "include/*", "main.cpp", "config.yaml"
-    implements = ["auto_header_only"]
+    include = ['include']
+    src = ['src']
 
     def layout(self):
         self.folders.source = '.'
@@ -33,17 +34,8 @@ class Pkg(ConanFile):
         meson.configure()
         meson.build()
 
-    def test(self):
-        meson = Meson(self)
-        meson.test()
-
     def package(self):
-        copy(self, "*.hpp", self.source_folder, self.package_folder)
-
-    def package_info(self):
-        self.cpp_info.includedirs = ['include']
-        self.cpp_info.bindirs = []
-        self.cpp_info.libdirs = []
+        copy(self, "*.h", self.source_folder, self.package_folder)
 
     def package_id(self):
         self.info.clear()

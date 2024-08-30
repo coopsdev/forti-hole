@@ -11,7 +11,7 @@ If you're looking for a solution with a flashy dashboard and extensive statistic
 - **Efficient DNS Blocklist Management**: Capable of managing blocklists with over 1 million domains without causing buffer overflows or network interruptions.
 - **YAML Configuration**: Simplified management through a YAML config file, allowing for easy customization and deployment.
 - **Automated Security Level Assignment**: Future releases will include automatic assignment of DNS filters to the appropriate security policies, significantly reducing manual management time.
-- **FortiAPI Integration**: Utilizes a powerful, rapidly expanding API wrapper for FortiGate, providing deep control over your FortiGate setup via a type-safe, nlohmann-based syntax that integrates seamlessly with your IDE (yes, you get code hints!).
+- **[forti-api](https://github.com/coopsdev/forti-api) Integration**: Utilizes a powerful, rapidly expanding API wrapper for FortiGate, providing deep control over your FortiGate setup via a type-safe, nlohmann-based syntax.
 - **Buffer Overflow Protection**: Directly addresses the buffer overflow issues caused by dynamic feed updates in FortiGate, ensuring stable and reliable operation even with large threat feeds.
 - **Future forti2ban Integration**: Planned integration with [forti2ban](https://github.com/coopsdev/forti2ban) to synchronize categories, though both tools will continue to run separately via cron or systemd.
 

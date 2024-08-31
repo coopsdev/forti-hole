@@ -21,6 +21,9 @@ FortiGate devices often struggle with managing large DNS blocklists due to memor
 
 With future features like automatic security level management and forti2ban integration, **forti-hole** is set to become an indispensable tool for anyone serious about network security on FortiGate.
 
+## Default 'Advanced' Settings - results from [d3ward.github.io/toolz/adblock](https://d3ward.github.io/toolz/adblock)
+<img src="https://cooperhlarson.com/media/Screenshot%202024-08-31%20at%205.07.39%C3%A2%C2%AFPM.png" />
+
 ## Contributing
 
 * Contributors are welcome! As **forti-hole** is refactored from its initial Python version into a more robust C++ implementation, there are many opportunities to get involved.

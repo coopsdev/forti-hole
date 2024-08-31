@@ -1,6 +1,6 @@
 output_dir: 'output'
 write_files_to_disk: false
-remove_all_threat_feeds_on_run: false
+remove_all_threat_feeds_on_run: true
 
 categories:
   min: 192  # FortiGate defined limit DO NOT CHANGE
@@ -14,6 +14,11 @@ forti_hole_automated_dns_filters:
     policies:
       - name: Example
         access: block # options: [block, monitor, allow]
+  - name: Advanced
+    security_level: 1
+    policies:
+      - name: Mac Studio -> wan1
+        access: block
 
 blocklist_sources:
   - name_prefix: 'hagezi'

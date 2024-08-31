@@ -19,12 +19,13 @@ class FortiHole {
     void create_file(const std::string& filename, const std::vector<std::string>& lines) const;
     static void remove_all_custom_threat_feeds();
     static void remove_extra_files(const std::string& naming_prefix, unsigned int index);
+    void enable_dns_filters(const std::string& naming_prefix, unsigned int num_files);
+    void update_security_policies();
 
 public:
     FortiHole();
 
     void update_threat_feeds();
-
 };
 
 

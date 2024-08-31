@@ -107,3 +107,18 @@ void FortiHole::remove_extra_files(const std::string &naming_prefix, unsigned in
         ++index;
     }
 }
+
+void FortiHole::enable_dns_filters(const std::string &naming_prefix, unsigned int num_files) {
+    for (const auto& filter_config : config.forti_hole_automated_dns_filters) {
+        auto filter = DNSFilter::get(filter_config.name);
+        // TODO: FINISH ME
+    }
+}
+
+void FortiHole::update_security_policies() {
+    for (const auto& filter_config : config.forti_hole_automated_dns_filters) {
+        for (const auto& policy_config : filter_config.policies) {
+            // TODO: FINISH ME
+        }
+    }
+}

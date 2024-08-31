@@ -32,6 +32,8 @@ With future features like automatic security level management and forti2ban inte
 
 Stay tuned for updates and join us in making **forti-hole** the go-to tool for managing DNS blocklists on FortiGate!
 
+# Sample forti-hole output
+
 ```markdown
 [==========] Running 1 test from 1 test suite.  
 [----------] Global test environment set-up.  

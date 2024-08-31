@@ -4,24 +4,20 @@
 
 #include "include/blocklist_scraper.h"
 #include <iostream>
-#include <fstream>
 #include <yaml-cpp/yaml.h>
 #include <curl/curl.h>
-#include <filesystem>
 #include <memory>
 #include <future>
 
 BlocklistScraper::BlocklistScraper(const std::string& config_file) : config(YAML::LoadFile(config_file)) {}
 
-std::vector<std::vector<std::vector<std::string>>> BlocklistScraper::operator()() {
+std::unordered_map<unsigned int, std::unordered_set<std::string>> BlocklistScraper::operator()() {
     std::cout << "Starting ThreatFeed construction..." << std::endl;
     process_config();
     fetch_multi();
     process_multi();
-    merge();
-    build();
     std::cout << "ThreatFeed construction finished successfully completed..." << std::endl;
-    return output;
+    return lists_by_security_level;
 }
 
 void BlocklistScraper::process_config() {
@@ -135,66 +131,4 @@ void BlocklistScraper::process_domains(const std::string& content, std::unordere
     }
 
     for (auto& future : futures) future.get();
-}
-
-void BlocklistScraper::merge() {
-    std::cout << "Consolidating data..." << std::endl;
-    for (unsigned int i = lists_by_security_level.size() - 1; i > 0; --i) {
-        for (const auto& item : lists_by_security_level[i]) {
-            lists_by_security_level[i - 1].insert(item);
-        }
-    }
-}
-
-void BlocklistScraper::build() {
-    std::cout << "Building ThreatFeeds..." << std::endl;
-    if (!std::filesystem::exists(config.output_dir)) {
-        std::filesystem::create_directories(config.output_dir);
-    }
-
-    output.resize(lists_by_security_level.size());
-
-    for (const auto& [security_level, _] : lists_by_security_level) {
-        construct(security_level);
-    }
-}
-
-void BlocklistScraper::construct(unsigned int security_level) {
-    std::cout << "Resizing files to fit on FortiGate..." << std::endl;
-
-    auto& lines = lists_by_security_level[security_level];
-    size_t total_lines = lines.size();
-    size_t file_count = std::max((total_lines + MAX_LINES_PER_FILE - 1) / MAX_LINES_PER_FILE, static_cast<size_t>(1));
-    size_t lines_per_file = total_lines / file_count;
-    size_t extra = total_lines % file_count;
-
-    std::cout << "Security Level " << security_level << " Files: " << file_count << ", LPF: " << lines_per_file << std::endl;
-
-    output[security_level].resize(file_count);
-
-    auto iter = lines.begin();
-    for (size_t i = 0; i < file_count; ++i) {
-        output[security_level][i].reserve(lines_per_file + extra);
-
-        std::string filename = std::filesystem::current_path().string()
-                + '/' + config.output_dir
-                + "/security_level_" + std::to_string(security_level)
-                + "_part_" + std::to_string(i + 1) + ".txt";
-
-        std::ofstream outfile(filename);
-        if (!outfile) {
-            std::cerr << "Failed to create file: " << filename << std::endl;
-            return;
-        }
-
-        size_t count = lines_per_file + (i < extra ? 1 : 0);
-        for (size_t j = 0; j < count; ++j) {
-            outfile << *iter << "\n";
-            output[security_level][i].push_back(*iter);
-            ++iter;
-        }
-
-        outfile.close();
-        std::cout << "Created file: " << filename << " with " << count << " lines." << std::endl;
-    }
 }

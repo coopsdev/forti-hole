@@ -18,7 +18,10 @@ inline static nlohmann::json yamlToJson(const YAML::Node& node) {
         try { json = node.as<int>(); }  // try to parse as int first
         catch (const YAML::BadConversion&) {
             try { json = node.as<double>(); }  // not int, try as double
-            catch (const YAML::BadConversion&) { json = node.as<std::string>(); } // fall back to a string
+            catch (const YAML::BadConversion&) {
+                try { json = node.as<bool>(); }  // try as bool
+                catch (const YAML::BadConversion&) { json = node.as<std::string>(); } // fallback to string
+            }
         }
     }
     else if (node.IsSequence()) for (const auto & i : node) json.push_back(yamlToJson(i));
@@ -64,6 +67,7 @@ struct Categories {
 
 struct Config {
     std::string output_dir;
+    bool write_files_to_disk{}, remove_all_threat_feeds_on_run{};
     Categories categories;
     std::vector<FortiHoleConfig> forti_hole_automated_dns_filters;
     std::vector<Blocklist> blocklist_sources;
@@ -71,7 +75,8 @@ struct Config {
     Config() = default;
     explicit Config(const YAML::Node& node) { *this = yamlToJson(node); }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Config, output_dir, categories,
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Config, output_dir, write_files_to_disk,
+                                                remove_all_threat_feeds_on_run, categories,
                                                 forti_hole_automated_dns_filters, blocklist_sources);
 };
 

@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#define ALLOW_RISKY_TESTS_ON_LOCAL_DEVICE false
+#define ALLOW_RISKY_TESTS_ON_LOCAL_DEVICE true
 
 #if ALLOW_RISKY_TESTS_ON_LOCAL_DEVICE
 

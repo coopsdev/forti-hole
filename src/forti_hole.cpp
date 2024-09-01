@@ -17,7 +17,7 @@ FortiHole::FortiHole() : scraper(), config(scraper.config) {
 }
 
 void FortiHole::merge() {
-    std::cout << "\nConsolidating data...\n" << std::endl;
+    std::cout << "Consolidating data...\n" << std::endl;
     for (unsigned int i = lists_by_security_level.size() - 1; i > 0; --i) {
         for (const auto& item : lists_by_security_level[i]) {
             lists_by_security_level[i - 1].insert(item);
@@ -97,13 +97,13 @@ void FortiHole::update_threat_feeds() {
                 ++iter;
             }
 
-            std::cout << "Built file: " << filename << " with " << to_upload.size() << " lines." << std::endl;
+            std::cout << "\nBuilt file: " << filename << " with " << to_upload.size() << " lines." << std::endl;
 
             if (config.write_files_to_disk) create_file(filename, to_upload);
 
             if (!ThreatFeed::contains(filename)) ThreatFeed::add(filename, category);
             ThreatFeed::update_feed({{filename, to_upload}});
-            std::cout << "\nSuccessfully uploaded to FortiGate: " << filename << std::endl;
+            std::cout << "Successfully uploaded to FortiGate: " << filename << std::endl;
 
             // give the FortiGate a chance to process the new data,
             // prevents network interruptions from buffer overflow

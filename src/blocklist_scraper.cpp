@@ -12,11 +12,12 @@
 BlocklistScraper::BlocklistScraper(const std::string& config_file) : config(YAML::LoadFile(config_file)) {}
 
 std::unordered_map<unsigned int, std::unordered_set<std::string>> BlocklistScraper::operator()() {
-    std::cout << "Starting ThreatFeed construction..." << std::endl;
+    std::cout << "Starting ThreatFeed construction...\n" << std::endl;
     process_config();
     fetch_multi();
+    std::cout << std::endl;
     process_multi();
-    std::cout << "ThreatFeed construction finished successfully completed..." << std::endl;
+    std::cout << "ThreatFeed construction finished successfully completed...\n" << std::endl;
     return lists_by_security_level;
 }
 

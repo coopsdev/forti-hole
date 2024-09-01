@@ -13,6 +13,7 @@ FortiHole::FortiHole() : scraper(), config(scraper.config) {
     lists_by_security_level = scraper();
     merge();
     build_threat_feed_info();
+    std::cout << "\n Successfully updated FortiGate threat feeds!"
 }
 
 void FortiHole::merge() {

@@ -32,13 +32,13 @@ inline static nlohmann::json yamlToJson(const YAML::Node& node) {
 }
 
 struct Policy {
-    std::string name, access;
+    std::string name;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Policy, name, access);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Policy, name);
 };
 
 struct FortiHoleConfig {
-    std::string name;
+    std::string name, access;
     unsigned int security_level{};
     std::vector<Policy> policies;
 
@@ -65,8 +65,15 @@ struct Categories {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Categories, min, max, base);
 };
 
+struct NamingConvention {
+    std::string prefix, security_level, file_index;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(NamingConvention, prefix, security_level, file_index)
+};
+
 struct Config {
     std::string output_dir;
+    NamingConvention naming_convention;
     bool write_files_to_disk{}, remove_all_threat_feeds_on_run{};
     Categories categories;
     std::vector<FortiHoleConfig> forti_hole_automated_dns_filters;
@@ -75,7 +82,7 @@ struct Config {
     Config() = default;
     explicit Config(const YAML::Node& node) { *this = yamlToJson(node); }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Config, output_dir, write_files_to_disk,
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Config, output_dir, naming_convention, write_files_to_disk,
                                                 remove_all_threat_feeds_on_run, categories,
                                                 forti_hole_automated_dns_filters, blocklist_sources);
 };

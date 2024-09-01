@@ -12,6 +12,7 @@
 FortiHole::FortiHole() : scraper(), config(scraper.config) {
     lists_by_security_level = scraper();
     merge();
+    build_threat_feed_info();
 }
 
 void FortiHole::merge() {
@@ -19,6 +20,46 @@ void FortiHole::merge() {
     for (unsigned int i = lists_by_security_level.size() - 1; i > 0; --i) {
         for (const auto& item : lists_by_security_level[i]) {
             lists_by_security_level[i - 1].insert(item);
+        }
+    }
+}
+
+void FortiHole::build_threat_feed_info() {
+    info_by_security_level.reserve(lists_by_security_level.size());
+    for (auto & lines : lists_by_security_level) {
+        auto total_lines = lines.second.size();
+        auto file_count = std::max((total_lines + MAX_LINES_PER_FILE - 1) / MAX_LINES_PER_FILE, static_cast<size_t>(1));
+        info_by_security_level.emplace_back(total_lines, file_count);
+    }
+}
+
+void FortiHole::resize_plus_toggle_filters_and_policies() {
+    for (unsigned int security_level = 0; security_level < info_by_security_level.size(); ++security_level) {
+        auto info = info_by_security_level[security_level];
+        for (unsigned int file_index = 1; file_index <= info.file_count; ++file_index) {
+            auto file_name = get_file_name(security_level, file_index);
+
+            auto category = config.categories.base + (security_level + 1) * file_index;
+
+            if (!ThreatFeed::contains(file_name))
+                ThreatFeed::add(file_name, category);
+
+            for (const auto& filter : config.forti_hole_automated_dns_filters) {
+
+                // enable necessary DNS filters
+                if (filter.security_level <= security_level) {
+                    auto dns_filter = DNSFilter::get(filter.name);
+                    if (filter.access == "block") dns_filter.block_category(category);
+                    else if (filter.access == "allow") dns_filter.allow_category(category);
+                    else if (filter.access == "monitor") dns_filter.monitor_category(category);
+                    else throw std::runtime_error("Not a valid DNSFilter setting: " + filter.access);
+                }
+
+                // enable necessary policies
+                for (const auto& policy : filter.policies) {
+                    // TODO: enable necessary policies for this dns filter
+                }
+            }
         }
     }
 }
@@ -35,25 +76,22 @@ void FortiHole::update_threat_feeds() {
     for (const auto& [security_level, _] : lists_by_security_level) {
         std::cout << "Resizing files to fit on FortiGate..." << std::endl;
 
-        auto& lines = lists_by_security_level[security_level];
-        size_t total_lines = lines.size();
-        size_t file_count = std::max((total_lines + MAX_LINES_PER_FILE - 1) / MAX_LINES_PER_FILE, static_cast<size_t>(1));
-        size_t lines_per_file = total_lines / file_count;
-        size_t extra = total_lines % file_count;
+        auto info = info_by_security_level[security_level];
 
-        std::cout << "Security Level " << security_level << " Files: " << file_count
-                  << ", LPF: " << lines_per_file << std::endl;
+        std::cout << "Security Level " << security_level
+                  << ": { "
+                  << "Files: " << info.file_count
+                  << ", LPF: " << info.lines_per_file
+                  << " }" << std::endl;
 
-        std::string file_base = "forti-hole_security_level_" + std::to_string(security_level) + "_part_";
-
-        auto iter = lines.begin();
-        for (size_t i = 0; i < file_count; ++i) {
-            std::string filename = file_base + std::to_string(i + 1);
+        auto iter = lists_by_security_level[security_level].begin();
+        for (size_t i = 0; i < info.file_count; ++i) {
+            auto filename = get_file_name(security_level, i + 1);
 
             std::vector<std::string> to_upload;
-            to_upload.reserve(lines_per_file + extra);
+            to_upload.reserve(info.lines_per_file + info.extra);
 
-            size_t count = lines_per_file + (i < extra ? 1 : 0);
+            size_t count = info.lines_per_file + (i < info.extra ? 1 : 0);
             for (size_t j = 0; j < count; ++j) {
                 to_upload.push_back(*iter);
                 ++iter;
@@ -73,7 +111,7 @@ void FortiHole::update_threat_feeds() {
             ++category;
         }
 
-        remove_extra_files(file_base, file_count + 1);
+        remove_extra_files(security_level, info.file_count);
     }
 }
 
@@ -99,26 +137,20 @@ void FortiHole::remove_all_custom_threat_feeds() {
     std::cout << "Successfully removed " << size << " threat feeds..." << std::endl;
 }
 
-void FortiHole::remove_extra_files(const std::string &naming_prefix, unsigned int index) {
+void FortiHole::remove_extra_files(unsigned int security_level, unsigned int file_index) {
     while (true) {
-        auto filename = naming_prefix + std::to_string(index);
+        auto filename = get_file_name(security_level, file_index);
         if (!ThreatFeed::contains(filename)) return;
         ThreatFeed::del(filename);
-        ++index;
+        ++file_index;
     }
 }
 
-void FortiHole::enable_dns_filters(const std::string &naming_prefix, unsigned int num_files) {
-    for (const auto& filter_config : config.forti_hole_automated_dns_filters) {
-        auto filter = DNSFilter::get(filter_config.name);
-        // TODO: FINISH ME
-    }
-}
-
-void FortiHole::update_security_policies() {
-    for (const auto& filter_config : config.forti_hole_automated_dns_filters) {
-        for (const auto& policy_config : filter_config.policies) {
-            // TODO: FINISH ME
-        }
-    }
+std::string FortiHole::get_file_name(unsigned int security_level, unsigned int file_index) {
+    return std::format("{}_{}-{}_{}-{}",
+                       config.naming_convention.prefix,
+                       config.naming_convention.security_level,
+                       security_level,
+                       config.naming_convention.file_index,
+                       file_index);
 }

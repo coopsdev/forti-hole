@@ -17,7 +17,7 @@ endforeach
 
 main_cpp = files(source_root + '/main.cpp')
 
-forti_hole = executable('forti_hole', sources + main_cpp, dependencies: global_deps, install : true)
+forti_hole = executable('forti-hole', sources + main_cpp, dependencies: global_deps, install : true)
 
 if get_option('buildtype') == 'debug'
         gtest_dep = dependency('gtest', required : true, main : true)

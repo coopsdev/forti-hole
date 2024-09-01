@@ -1,6 +1,13 @@
 output_dir: 'output'
+
+# will print in format: forti-hole_security_level-{}_part-{}
+naming_convention:
+  prefix: forti-hole
+  security_level: security_level
+  file_index: part
+
 write_files_to_disk: false
-remove_all_threat_feeds_on_run: true
+remove_all_threat_feeds_on_run: false
 
 categories:
   min: 192  # FortiGate defined limit DO NOT CHANGE
@@ -11,14 +18,14 @@ categories:
 forti_hole_automated_dns_filters:
   - name: Home
     security_level: 0
+    access: block # options: [block, monitor, allow]
     policies:
       - name: Example
-        access: block # options: [block, monitor, allow]
   - name: Advanced
     security_level: 1
+    access: block
     policies:
       - name: Mac Studio -> wan1
-        access: block
 
 blocklist_sources:
   - name_prefix: 'hagezi'

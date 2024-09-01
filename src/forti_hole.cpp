@@ -53,6 +53,7 @@ void FortiHole::resize_plus_toggle_filters_and_policies() {
                     else if (filter.access == "allow") dns_filter.allow_category(category);
                     else if (filter.access == "monitor") dns_filter.monitor_category(category);
                     else throw std::runtime_error("Not a valid DNSFilter setting: " + filter.access);
+                    DNSFilter::update(dns_filter);
                 }
 
                 // enable necessary policies

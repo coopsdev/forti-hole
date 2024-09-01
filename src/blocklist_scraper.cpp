@@ -12,17 +12,16 @@
 BlocklistScraper::BlocklistScraper(const std::string& config_file) : config(YAML::LoadFile(config_file)) {}
 
 std::unordered_map<unsigned int, std::unordered_set<std::string>> BlocklistScraper::operator()() {
-    std::cout << "Starting ThreatFeed construction...\n" << std::endl;
+    std::cout << "Starting blocklist scraping process...\n" << std::endl;
     process_config();
     fetch_multi();
     std::cout << std::endl;
     process_multi();
-    std::cout << "ThreatFeed construction finished successfully completed...\n" << std::endl;
     return lists_by_security_level;
 }
 
 void BlocklistScraper::process_config() {
-    std::cout << "Processing config file..." << std::endl;
+    std::cout << "Processing config file...\n" << std::endl;
     for (const auto& entry : config.blocklist_sources) {
         for (const auto& src : entry.sources) {
             requests.push_back({entry.url + "/" + src.name + entry.postfix + ".txt",
@@ -38,7 +37,7 @@ size_t write_callback(void* ptr, size_t size, size_t nmemb, void* userdata) {
 }
 
 void BlocklistScraper::fetch_multi() {
-    std::cout << "Scraping blocklists..." << std::endl;
+    std::cout << "Scraping blocklists...\n" << std::endl;
 
     curl_global_init(CURL_GLOBAL_ALL);
 
@@ -95,11 +94,12 @@ void BlocklistScraper::fetch_multi() {
 }
 
 void BlocklistScraper::process_multi() {
-    std::cout << "Parsing response data..." << std::endl;
+    std::cout << "Parsing response data...\n" << std::endl;
     for (auto& request : requests) {
         std::cout << "Parsing response data: " << request.url << std::endl;
         process_domains(request.response, lists_by_security_level[request.security_level]);
     }
+    std::cout << "\nBlocklist processing successfully completed...\n" << std::endl;
 }
 
 void BlocklistScraper::process_domains(const std::string& content, std::unordered_set<std::string>& target_set) {

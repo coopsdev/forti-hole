@@ -110,7 +110,7 @@ void FortiHole::update_threat_feeds() {
             ++category;
         }
 
-        remove_extra_files(security_level, info.file_count);
+        remove_extra_files(security_level, info.file_count + 1);
     }
 }
 

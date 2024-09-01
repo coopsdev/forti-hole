@@ -1,0 +1,74 @@
+name: C++ CI Push Main
+
+on:
+  release:
+    types: [published]
+  push:
+    branches: [main]
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  build-and-publish-release:
+    name: Build and Publish Release
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [self-hosted, ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            build_type: Release
+          - os: windows-latest
+            build_type: Release
+          - os: macos-latest
+            build_type: Release
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Conan
+        uses: jwlawson/actions-setup-conan@v1
+
+      - name: Authenticate with Artifactory (Self-Hosted Runner Only)
+        if: matrix.os == 'self-hosted'
+        run: /home/gh-runner/artiAuth.sh
+
+      - name: Get Latest Release Tag
+        id: latest-tag
+        run: echo "tag=$(git describe --tags `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
+
+      - name: Cache ccache and Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.conan/data
+            /home/gh-runner/.cache/ccache
+          key: ${{ runner.os }}-ccache-${{ env.tag }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+            ${{ runner.os }}-ccache-${{ env.tag }}
+
+      - name: Install Dependencies and Build
+        run: |
+          conan install . -s build_type=${{ matrix.build_type }} --build=missing
+          conan build . -s build_type=${{ matrix.build_type }}
+
+      - name: Create Package
+        run: |
+          conan create . forti-hole/1.0@user/channel -s build_type=${{ matrix.build_type }} --build=missing
+
+      - name: Upload Packages to Artifactory
+        run: |
+          conan upload "forti-hole/*@user/channel" -r vps-local --all --confirm
+
+      - name: Upload Packages to Artifactory (Self-Hosted Runner Only)
+        if: matrix.os == 'self-hosted'
+        run: |
+          conan upload "*" -r vps-local --all --confirm
+
+      - name: Show ccache Stats
+        run: ccache -s

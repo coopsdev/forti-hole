@@ -2,9 +2,12 @@
 
 ## Overview
 
-**forti-hole** is a robust DNS Threat Feed management tool inspired by Pi-hole, designed specifically for FortiGate users who need to manage DNS blocklists exceeding 1 million domains. While forti-hole is not a Pi-hole replacement, it addresses key limitations in FortiGate's non-API managed threat feeds—particularly the issues related to buffer overflow and network traffic interruptions when managing large-scale domain lists.
+**forti-hole** is a cutting-edge DNS Threat Feed management tool, engineered for FortiGate users who need to manage DNS blocklists at an unprecedented scale. Inspired by Pi-hole, forti-hole is designed to tackle the challenges associated with managing massive domain lists, overcoming limitations like buffer overflow and network traffic interruptions that plague FortiGate’s non-API managed threat feeds.
 
-If you're looking for a solution with a flashy dashboard and extensive statistics, Pi-hole is still your best bet. However, for those who need streamlined control via a YAML config file and the ability to handle massive DNS blocklists efficiently, **forti-hole** is the tool for you.
+With forti-hole, you can effortlessly handle a staggering 1,998,106 unique domains, processed in just 33 seconds—thanks to intelligent de-duplication and optimized file handling, including a built-in delay to prevent overwhelming FortiGate’s buffer. The default configuration comes with a preloaded blocklist 'recipe' that includes over 2 million domains, organized into a 2-level security system, and scores as high as 97% on the [d3ward ad-block test](https://d3ward.github.io/toolz/adblock).
+
+While forti-hole is not a replacement for Pi-hole—especially if you’re looking for a flashy dashboard and in-depth statistics—its power lies in simplicity and scale. If you need streamlined, YAML-configured control and the capability to efficiently manage vast DNS blocklists on your FortiGate, **forti-hole** is the ultimate solution.
+
 
 ## Key Features
 

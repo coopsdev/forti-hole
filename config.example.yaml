@@ -1,6 +1,19 @@
-# Rename this file to config.yaml
+# FortiGate connection settings
+fortigate:
+  admin_https_port: 44300  # HTTPS port for FortiGate admin access (default is 44300, but can be customized)
+  gateway_ip: '192.168.1.1'  # IP address of the FortiGate gateway, relative to the device running this script
+  ca_cert_path: '/path/to/fortigate/ca.cer'  # Path to the FortiGate CA certificate (typically the global CA)
+  ssl_cert_path: '/path/to/fortigate/ssl.p12'  # Path to your SSL certificate (.p12 format)
 
-output_dir: 'output'  # Directory where output files will be saved. Use a valid path.
+  # SSL certificate setup:
+  # 1. Generate a private key.
+  # 2. Use OpenSSL to create a .pem certificate.
+  # 3. Convert the .pem to .p12 format if needed.
+  # 4. Upload the certificate to FortiGate under System -> Certificates.
+  # 5. FortiGate will convert the uploaded cert to .cer and store it securely.
+  # 6. Use the .p12 file with forti-hole/forti-api, as it contains both the certificate and private key.
+  # 7. Set the FORTIGATE_SSL_CERT_PASS environment variable in your .env file.
+  # For detailed steps, see the GitHub README.
 
 # Defines the naming convention for the generated files.
 # Final file names will follow the pattern: <prefix>_<security_level>-<part>.txt
@@ -9,8 +22,8 @@ naming_convention:
   security_level: security_level  # Placeholder for the security level in the file name.
   file_index: part  # Placeholder for the file index in the file name.
 
+output_dir: 'output'  # Directory where output files will be saved. Use a valid path.
 write_files_to_disk: false  # If true, files are written to disk; if false, they are processed in-memory.
-
 remove_all_threat_feeds_on_run: false  # Useful for clearing out old threat feeds when changing naming-convention.
 
 # Configuration for available FortiGate categories that can be used in DNS filters.

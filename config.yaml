@@ -9,6 +9,7 @@ naming_convention:
 write_files_to_disk: false
 remove_all_threat_feeds_on_run: false
 
+# The forti-categories available and there configuration
 categories:
   min: 192  # FortiGate defined limit DO NOT CHANGE
   max: 221  # FortiGate defined limit DO NOT CHANGE
@@ -16,16 +17,23 @@ categories:
 
 # Automated policy management of DNS filters will be available soon
 forti_hole_automated_dns_filters:
-  - name: Home
-    security_level: 0
-    access: block # options: [block, monitor, allow]
-    policies:
-      - name: Example
-  - name: Advanced
-    security_level: 1
-    access: block
-    policies:
-      - name: Mac Studio -> wan1
+  - dns_filter: home
+    firewall_policies:
+      - internal -> wan1
+    filters:
+      - security_level: 0
+        access: block # options: [block, monitor, allow]
+      - security_level: 1
+        access: monitor
+
+  - dns_filter: advanced
+    firewall_policies:
+      - Cooper -> wan1
+    filters:
+      - security_level: 0
+        access: block
+      - security_level: 1
+        access: block
 
 blocklist_sources:
   - name_prefix: 'hagezi'

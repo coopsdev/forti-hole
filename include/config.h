@@ -31,18 +31,19 @@ inline static nlohmann::json yamlToJson(const YAML::Node& node) {
     return json;
 }
 
-struct Policy {
-    std::string name;
+struct FilteringPolicy {
+    unsigned int security_level{};
+    std::string access;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Policy, name);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(FilteringPolicy, security_level, access);
 };
 
 struct FortiHoleConfig {
-    std::string name, access;
-    unsigned int security_level{};
-    std::vector<Policy> policies;
+    std::string dns_filter, access;
+    std::vector<std::string> firewall_policies;
+    std::vector<FilteringPolicy> filters;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(FortiHoleConfig, name, security_level, policies);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(FortiHoleConfig, dns_filter, firewall_policies, filters);
 };
 
 struct Source {

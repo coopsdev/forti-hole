@@ -13,7 +13,7 @@
 TEST(TestFortiHole, TestPopulateThreatFeed) {
     try {
         FortiHole fortiHole;
-        fortiHole.update_threat_feeds();
+        fortiHole();
     } catch (const std::exception& e) {
         std::cout << e.what() << std::endl;
         FAIL();

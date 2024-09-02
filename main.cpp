@@ -6,7 +6,7 @@ int main() {
     std::cout << "Starting forti-hole..." << std::endl;
 
     FortiHole fortiHole;
-    fortiHole.update_threat_feeds();
+    fortiHole();
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

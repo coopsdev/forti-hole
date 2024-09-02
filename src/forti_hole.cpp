@@ -26,11 +26,11 @@ void FortiHole::operator()() {
     std::cout << "Creating threat feed containers..." << std::endl;
     create_threat_feeds();
 
-    std::cout << "Updating firewall policies..." << std::endl;
-    enable_filters_and_policies();
-
     std::cout << "Constructing files and pushing threat feeds...\n" << std::endl;
     update_threat_feeds();
+
+    std::cout << "Updating firewall policies..." << std::endl;
+    enable_filters_and_policies();
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);

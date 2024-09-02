@@ -95,11 +95,20 @@ fi
 
 meson compile -C builddir || { echo "Build failed"; exit 1; }
 
-# Copy the built file to the desired location (requires sudo)
+# Copy the built file to the desired location (requires sudo on non-Windows systems)
 if [[ "$OSTYPE" != "msys" ]]; then
     sudo cp ./build/meson/forti-hole ./ || { echo "Copy failed"; exit 1; }
 else
     cp ./builddir/meson/forti-hole.exe ./ || { echo "Copy failed"; exit 1; }
+fi
+
+# Check for existing config.yaml and .env files
+if [[ ! -f ./config.yaml ]]; then
+    cp ./config.example.yaml ./config.yaml || { echo "Failed to copy config.yaml"; exit 1; }
+fi
+
+if [[ ! -f ./.env ]]; then
+    cp ./.env.example ./.env || { echo "Failed to copy .env"; exit 1; }
 fi
 
 echo "Build and installation completed successfully."

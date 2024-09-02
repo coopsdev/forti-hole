@@ -38,10 +38,12 @@ Stay tuned for updates and join us in making **forti-hole** the go-to tool for m
 # Sample forti-hole output
 
 ```markdown
-Starting ThreatFeed construction...
+Starting blocklist scraping process...
 
 Processing config file...
+
 Scraping blocklists...
+
 Fetching URL: https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/pro.plus.txt
 Fetching URL: https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/tif.txt
 Fetching URL: https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/ultimate.txt
@@ -56,6 +58,7 @@ Fetching URL: https://raw.githubusercontent.com/blocklistproject/Lists/master/ad
 Fetching URL: https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts/default.txt
 
 Parsing response data...
+
 Parsing response data: https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/pro.plus.txt
 Parsing response data: https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/tif.txt
 Parsing response data: https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/ultimate.txt
@@ -68,66 +71,67 @@ Parsing response data: https://raw.githubusercontent.com/blocklistproject/Lists/
 Parsing response data: https://raw.githubusercontent.com/blocklistproject/Lists/master/adguard/abuse-ags.txt
 Parsing response data: https://raw.githubusercontent.com/blocklistproject/Lists/master/adguard/fraud-ags.txt
 Parsing response data: https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts/default.txt
-ThreatFeed construction finished successfully completed...
+
+Blocklist processing successfully completed...
 
 Consolidating data...
+Gathering threat feed information...
+Creating threat feed containers...
+Updating firewall policies...
+Constructing files and pushing threat feeds...
 
-Building ThreatFeeds...
+Security Level 0: { Files: 14, LPF: 128423 }
 
-Resizing files to fit on FortiGate...
-
-Security Level 0: { Files: 14, LPF: 128617 }
-
-Built file: forti-hole_security_level-0_part-1 with 128618 lines.
+Built file: forti-hole_security_level-0_part-1 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-1
 
-Built file: forti-hole_security_level-0_part-2 with 128618 lines.
+Built file: forti-hole_security_level-0_part-2 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-2
 
-Built file: forti-hole_security_level-0_part-3 with 128618 lines.
+Built file: forti-hole_security_level-0_part-3 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-3
 
-Built file: forti-hole_security_level-0_part-4 with 128618 lines.
+Built file: forti-hole_security_level-0_part-4 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-4
 
-Built file: forti-hole_security_level-0_part-5 with 128618 lines.
+Built file: forti-hole_security_level-0_part-5 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-5
 
-Built file: forti-hole_security_level-0_part-6 with 128618 lines.
+Built file: forti-hole_security_level-0_part-6 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-6
 
-Built file: forti-hole_security_level-0_part-7 with 128618 lines.
+Built file: forti-hole_security_level-0_part-7 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-7
 
-Built file: forti-hole_security_level-0_part-8 with 128618 lines.
+Built file: forti-hole_security_level-0_part-8 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-8
 
-Built file: forti-hole_security_level-0_part-9 with 128618 lines.
+Built file: forti-hole_security_level-0_part-9 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-9
 
-Built file: forti-hole_security_level-0_part-10 with 128618 lines.
+Built file: forti-hole_security_level-0_part-10 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-10
 
-Built file: forti-hole_security_level-0_part-11 with 128617 lines.
+Built file: forti-hole_security_level-0_part-11 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-11
 
-Built file: forti-hole_security_level-0_part-12 with 128617 lines.
+Built file: forti-hole_security_level-0_part-12 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-12
 
-Built file: forti-hole_security_level-0_part-13 with 128617 lines.
+Built file: forti-hole_security_level-0_part-13 with 128424 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-13
 
-Built file: forti-hole_security_level-0_part-14 with 128617 lines.
+Built file: forti-hole_security_level-0_part-14 with 128423 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-0_part-14
-Resizing files to fit on FortiGate...
+Security Level 1: { Files: 2, LPF: 100084 }
 
-Security Level 1: { Files: 2, LPF: 100101 }
-
-Built file: forti-hole_security_level-1_part-1 with 100102 lines.
+Built file: forti-hole_security_level-1_part-1 with 100085 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-1_part-1
 
-Built file: forti-hole_security_level-1_part-2 with 100101 lines.
+Built file: forti-hole_security_level-1_part-2 with 100084 lines.
 Successfully uploaded to FortiGate: forti-hole_security_level-1_part-2
+
+forti-hole finished successfully in 33s
 ```
 
 ---

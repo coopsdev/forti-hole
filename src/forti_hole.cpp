@@ -17,21 +17,24 @@ void FortiHole::operator()() {
     if (!std::filesystem::exists(config.output_dir)) std::filesystem::create_directories(config.output_dir);
     if (config.remove_all_threat_feeds_on_run) remove_all_custom_threat_feeds();
 
-    std::cout << "Consolidating data...\n" << std::endl;
+    std::cout << "Consolidating data..." << std::endl;
     merge();
 
-    std::cout << "Gathering threat feed statistics...\n" << std::endl;
+    std::cout << "Gathering threat feed information..." << std::endl;
     build_threat_feed_info();
 
-    std::cout << "Constructing files and updating threat feeds...\n" << std::endl;
-    update_threat_feeds();
+    std::cout << "Creating threat feed containers..." << std::endl;
+    create_threat_feeds();
 
-    std::cout << "\nActivating threat-feeds in dns-filters & updating firewall policies...\n" << std::endl;
+    std::cout << "Updating firewall policies..." << std::endl;
     enable_filters_and_policies();
+
+    std::cout << "Constructing files and pushing threat feeds...\n" << std::endl;
+    update_threat_feeds();
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
-    std::cout << "forti-hole finished successfully in " << duration.count() << 's' << std::endl;
+    std::cout << "\nforti-hole finished successfully in " << duration.count() << 's' << std::endl;
 }
 
 void FortiHole::merge() {
@@ -53,45 +56,15 @@ void FortiHole::build_threat_feed_info() {
     }
 }
 
-void FortiHole::update_threat_feeds() {
-    auto category = config.categories.base;
-    for (const auto& [security_level, _] : lists_by_security_level) {
+void FortiHole::create_threat_feeds() {
+    for (unsigned int security_level = 0; security_level < info_by_security_level.size(); security_level++) {
         auto info = info_by_security_level[security_level];
-
-        std::cout << "Security Level " << security_level
-                  << ": { "
-                  << "Files: " << info.file_count
-                  << ", LPF: " << info.lines_per_file
-                  << " }" << std::endl;
-
-        auto iter = lists_by_security_level[security_level].begin();
-        for (size_t i = 0; i < info.file_count; ++i) {
-            auto filename = get_file_name(security_level, i + 1);
-
-            std::vector<std::string> to_upload;
-            to_upload.reserve(info.lines_per_file + info.extra);
-
-            size_t count = info.lines_per_file + (i < info.extra ? 1 : 0);
-            for (size_t j = 0; j < count; ++j) {
-                to_upload.push_back(*iter);
-                ++iter;
-            }
-
-            std::cout << "\nBuilt file: " << filename << " with " << to_upload.size() << " lines." << std::endl;
-
-            if (config.write_files_to_disk) create_file(filename, to_upload);
-
+        auto category = info.category_base;
+        for (unsigned int file_index = 0; file_index < info.file_count; ++file_index) {
+            auto filename = get_file_name(security_level, file_index + 1);
             if (!ThreatFeed::contains(filename)) ThreatFeed::add(filename, category);
-            ThreatFeed::update_feed({{filename, to_upload}});
-            std::cout << "Successfully uploaded to FortiGate: " << filename << std::endl;
-
-            // give the FortiGate a chance to process the new data,
-            // prevents network interruptions from buffer overflow
-            std::this_thread::sleep_for(std::chrono::seconds(1));
             ++category;
         }
-
-        remove_extra_files(security_level, info.file_count + 1);
     }
 }
 
@@ -126,6 +99,44 @@ void FortiHole::enable_filters_and_policies() {
             policy.dnsfilter_profile = dns_filter.name;
             FortiGate::Policy::update(policy);
         }
+    }
+}
+
+void FortiHole::update_threat_feeds() {
+    for (const auto& [security_level, _] : lists_by_security_level) {
+        auto info = info_by_security_level[security_level];
+
+        std::cout << "Security Level " << security_level
+                  << ": { "
+                  << "Files: " << info.file_count
+                  << ", LPF: " << info.lines_per_file
+                  << " }" << std::endl;
+
+        auto iter = lists_by_security_level[security_level].begin();
+        for (size_t i = 0; i < info.file_count; ++i) {
+            auto filename = get_file_name(security_level, i + 1);
+
+            std::vector<std::string> to_upload;
+            to_upload.reserve(info.lines_per_file + info.extra);
+
+            size_t count = info.lines_per_file + (i < info.extra ? 1 : 0);
+            for (size_t j = 0; j < count; ++j) {
+                to_upload.push_back(*iter);
+                ++iter;
+            }
+
+            std::cout << "\nBuilt file: " << filename << " with " << to_upload.size() << " lines." << std::endl;
+
+            if (config.write_files_to_disk) create_file(filename, to_upload);
+            ThreatFeed::update_feed({{filename, to_upload}});
+            std::cout << "Successfully uploaded to FortiGate: " << filename << std::endl;
+
+            // give the FortiGate a chance to process the new data,
+            // prevents network interruptions from buffer overflow
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+        remove_extra_files(security_level, info.file_count + 1);
     }
 }
 

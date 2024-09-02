@@ -28,11 +28,14 @@ class FortiHole {
 
     void merge();
     void build_threat_feed_info();
+    void create_threat_feeds();
     void enable_filters_and_policies();
     void update_threat_feeds();
     void create_file(const std::string& filename, const std::vector<std::string>& lines) const;
     void remove_extra_files(unsigned int security_level, unsigned int file_index);
+
     std::string get_file_name(unsigned int security_level, unsigned int file_index);
+
     static void remove_all_custom_threat_feeds();
 
 public:

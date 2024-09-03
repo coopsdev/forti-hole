@@ -88,6 +88,47 @@ else
     fi
 fi
 
+# Function to install ninja on Linux (supports apt and dnf)
+install_ninja_linux() {
+    if command_exists apt-get; then
+        echo "Installing ninja using apt-get..."
+        sudo apt-get update && sudo apt-get install -y ninja-build
+    elif command_exists dnf; then
+        echo "Installing ninja using dnf..."
+        sudo dnf install -y ninja-build
+    else
+        echo "Error: Unsupported Linux distribution. Please install ninja manually."
+        exit 1
+    fi
+}
+
+# Function to install ninja on macOS using Homebrew
+install_ninja_mac() {
+    if command_exists brew; then
+        echo "Installing ninja using Homebrew..."
+        brew install ninja
+    else
+        echo "Error: Homebrew is not installed. Please install Homebrew or ninja manually."
+        exit 1
+    fi
+}
+
+# Ninja install logic
+if command_exists ninja; then
+    echo "ninja is already installed."
+else
+    echo "ninja is not installed."
+
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        install_ninja_linux
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        install_ninja_mac
+    else
+        echo "Error: Unsupported operating system. Please install ninja manually."
+        exit 1
+    fi
+fi
+
 
 # Linux-specific setup for venv
 setup_linux_venv() {

@@ -86,6 +86,17 @@ else
     exit 1
 fi
 
+# Check if 'forti-api' is already added as a remote upstream, if not, add it
+ensure_forti_api_remote() {
+    if ! conan remote list | grep -q 'forti-api'; then
+        echo "Adding 'forti-api' Conan remote..."
+        conan remote add forti-api https://repo.cooperhlarson.com/artifactory/fortigate/ || { echo "Failed to add 'forti-api' Conan remote"; exit 1; }
+    else
+        echo "'forti-api' Conan remote already exists."
+    fi
+}
+
+# Ensure default Conan profile exists
 ensure_default_profile() {
     if ! conan profile show -pr:a default &> /dev/null; then
         echo "Default profile not found, creating it..."
@@ -95,6 +106,7 @@ ensure_default_profile() {
     fi
 }
 
+# Create and configure the 'release' Conan profile
 create_and_configure_release_profile() {
     if ! conan profile show -pr:a release &> /dev/null; then
         echo "Creating 'release' Conan profile..."
@@ -127,7 +139,8 @@ create_and_configure_release_profile() {
     fi
 }
 
-
+# Execute functions
+ensure_forti_api_remote
 ensure_default_profile
 create_and_configure_release_profile
 

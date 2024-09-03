@@ -1,12 +1,12 @@
 [Unit]
-Description=Update Fortigate Threat Feed with fail2ban jail
+Description=forti-hole DNS blocklist service
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 Type=oneshot
 OnBootSec=60
-ExecStart=/usr/bin/python3.12 /home/coop/forti/FortiDNS.py
+ExecStart= # This line is auto-generated via the install script
 
 [Install]
 WantedBy=multi-user.target

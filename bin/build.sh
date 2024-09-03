@@ -47,6 +47,48 @@ check_python_installed() {
     fi
 }
 
+# Function to install pkg-config on Linux (supports apt and dnf)
+install_pkg_config_linux() {
+    if command_exists apt-get; then
+        echo "Installing pkg-config using apt-get..."
+        sudo apt-get update && sudo apt-get install -y pkg-config
+    elif command_exists dnf; then
+        echo "Installing pkg-config using dnf..."
+        sudo dnf install -y pkgconf
+    else
+        echo "Error: Unsupported Linux distribution. Please install pkg-config manually."
+        exit 1
+    fi
+}
+
+# Function to install pkg-config on macOS using Homebrew
+install_pkg_config_mac() {
+    if command_exists brew; then
+        echo "Installing pkg-config using Homebrew..."
+        brew install pkg-config
+    else
+        echo "Error: Homebrew is not installed. Please install Homebrew or pkg-config manually."
+        exit 1
+    fi
+}
+
+# Install pkg-config if its not installed
+if command_exists pkg-config; then
+    echo "pkg-config is already installed."
+else
+    echo "pkg-config is not installed."
+
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        install_pkg_config_linux
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        install_pkg_config_mac
+    else
+        echo "Error: Unsupported operating system. Please install pkg-config manually."
+        exit 1
+    fi
+fi
+
+
 # Linux-specific setup for venv
 setup_linux_venv() {
     # Check if python3-venv is installed on Linux
@@ -68,7 +110,7 @@ setup_macos_venv() {
     setup_venv
 }
 
-# Main script logic
+# Main venv install logic
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     check_python_installed
     setup_linux_venv

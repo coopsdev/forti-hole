@@ -1,11 +1,38 @@
 #!/bin/bash
 
-# Check if running on Windows and ensure Python is installed
-if [[ "$OSTYPE" == "msys" ]]; then
-    if ! command -v python &> /dev/null && ! command -v python3 &> /dev/null; then
+# Function to set up a Python virtual environment
+setup_venv() {
+    python3 -m venv venv || { echo "Failed to create virtual environment"; exit 1; }
+    source venv/bin/activate || { echo "Failed to activate virtual environment"; exit 1; }
+
+    # Trap the script exit to deactivate the virtual environment
+    trap deactivate_venv EXIT
+
+    # Upgrade pip to the latest version
+    pip install --upgrade pip || { echo "Failed to upgrade pip"; exit 1; }
+}
+
+# Function to deactivate the virtual environment
+deactivate_venv() {
+    deactivate || { echo "Failed to deactivate virtual environment"; }
+}
+
+# Function to install Conan and Meson inside the venv
+install_conan_meson() {
+    pip install conan meson || { echo "Failed to install Conan and Meson"; exit 1; }
+}
+
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" &> /dev/null
+}
+
+# Ensure Python is installed (especially on Windows)
+check_python_installed() {
+    if ! command_exists python && ! command_exists python3; then
         echo "**********************************************"
         echo "*                                            *"
-        echo "*            🚨 Windows Detected 🚨            *"
+        echo "*            🚨 Python Not Detected 🚨         *"
         echo "*                                            *"
         echo "*   Python is not installed! Please install   *"
         echo "*   Python before proceeding.                 *"
@@ -18,58 +45,45 @@ if [[ "$OSTYPE" == "msys" ]]; then
         echo "**********************************************"
         exit 1
     fi
-fi
+}
 
-# Ensure Conan is installed
+# Linux-specific setup for venv
+setup_linux_venv() {
+    # Check if python3-venv is installed on Linux
+    if ! dpkg -s python3-venv &> /dev/null; then
+        echo "python3-venv is not installed, installing..."
+        sudo apt-get update
+        sudo apt-get install -y python3-venv || { echo "Failed to install python3-venv"; exit 1; }
+    fi
+    setup_venv
+}
+
+# Windows-specific setup for venv
+setup_windows_venv() {
+    setup_venv
+}
+
+# macOS-specific setup for venv
+setup_macos_venv() {
+    setup_venv
+}
+
+# Main script logic
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    if ! command -v conan &> /dev/null; then
-        echo "Conan could not be found, installing via pipx..."
-
-        # Ensure pipx is installed
-        if ! command -v pipx &> /dev/null; then
-            echo "pipx could not be found, installing..."
-            python3 -m pip install --user pipx || { echo "pipx installation failed"; exit 1; }
-            python3 -m pipx ensurepath || { echo "pipx ensurepath failed"; exit 1; }
-            # Update PATH in the current shell session
-            export PATH="$HOME/.local/bin:$PATH"
-        fi
-
-        # Install Conan via pipx
-        pipx install conan || { echo "Conan installation via pipx failed"; exit 1; }
-    fi
-
-    # Ensure the PATH is updated for Conan installed via pipx
-    export PATH="$HOME/.local/bin:$PATH"
-    echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
-
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    if ! command -v conan &> /dev/null; then
-        echo "Conan could not be found, installing..."
-        brew install conan || { echo "Conan installation failed"; exit 1; }
-    fi
+    check_python_installed
+    setup_linux_venv
+    install_conan_meson
 elif [[ "$OSTYPE" == "msys" ]]; then
-    if ! command -v conan &> /dev/null; then
-        echo "Conan could not be found, installing..."
-        python -m pip install conan || { echo "Conan installation failed"; exit 1; }
-    fi
-fi
-
-# Ensure Meson is installed
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    if ! command -v meson &> /dev/null; then
-        echo "Meson could not be found, installing..."
-        sudo apt install meson || { echo "Meson installation failed"; exit 1; }
-    fi
+    check_python_installed
+    setup_windows_venv
+    install_conan_meson
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-    if ! command -v meson &> /dev/null; then
-        echo "Meson could not be found, installing..."
-        brew install meson || { echo "Meson installation failed"; exit 1; }
-    fi
-elif [[ "$OSTYPE" == "msys" ]]; then
-    if ! command -v meson &> /dev/null; then
-        echo "Meson could not be found, installing..."
-        python -m pip install meson || { echo "Meson installation failed"; exit 1; }
-    fi
+    check_python_installed
+    setup_macos_venv
+    install_conan_meson
+else
+    echo "Unsupported operating system: $OSTYPE"
+    exit 1
 fi
 
 # Check for 'release' Conan profile
@@ -109,7 +123,7 @@ else
     meson setup builddir || { echo "Meson setup failed"; exit 1; }
 fi
 
-meson compile -C builddir || { echo "Build failed"; exit 1; }
+conan build . -pr:a release --build=missing || { echo "Build failed"; exit 1; }
 
 # Check for existing config.yaml and .env files
 if [[ ! -f ./config.yaml ]]; then

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-CONFIG_FILE="../config.yaml"
-ENV_FILE="../.env"
-EXECUTABLE="../build/meson/forti-hole"
+CONFIG_FILE="./config.yaml"
+ENV_FILE="./.env"
+EXECUTABLE="./build/meson/forti-hole"
 
 any_missing=false
 

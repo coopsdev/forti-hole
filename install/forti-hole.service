@@ -1,0 +1,12 @@
+[Unit]
+Description=Update Fortigate Threat Feed with fail2ban jail
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+OnBootSec=60
+ExecStart=/usr/bin/python3.12 /home/coop/forti/FortiDNS.py
+
+[Install]
+WantedBy=multi-user.target

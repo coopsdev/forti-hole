@@ -86,36 +86,48 @@ else
     exit 1
 fi
 
-# Check for 'release' Conan profile
-if ! conan profile show release &> /dev/null; then
-    echo "Creating 'release' Conan profile..."
-    conan profile detect --name=release --force || { echo "Failed to create Conan profile"; exit 1; }
-
-    echo "Configuring 'release' profile..."
-
-    PROFILE_PATH=$(conan profile path release)
-
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' 's|compiler=.*|compiler=apple-clang|' "$PROFILE_PATH"
-        sed -i '' 's|compiler.libcxx=.*|compiler.libcxx=libc++|' "$PROFILE_PATH"
-        sed -i '' 's|os=.*|os=Macos|' "$PROFILE_PATH"
-        sw_version=$(sw_vers -productVersion)
-        sed -i '' "s|os.version=.*|os.version=$sw_version|" "$PROFILE_PATH"
-    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        sed -i 's|compiler=.*|compiler=gcc|' "$PROFILE_PATH"
-        sed -i 's|compiler.libcxx=.*|compiler.libcxx=libstdc++|' "$PROFILE_PATH"
-        sed -i 's|os=.*|os=Linux|' "$PROFILE_PATH"
-    elif [[ "$OSTYPE" == "msys" ]]; then
-        sed -i 's|compiler=.*|compiler=Visual Studio|' "$PROFILE_PATH"
-        sed -i 's|compiler.version=.*|compiler.version=17|' "$PROFILE_PATH"
-        sed -i 's|compiler.runtime=.*|compiler.runtime=MD|' "$PROFILE_PATH"
-        sed -i 's|arch=.*|arch=x86_64|' "$PROFILE_PATH"
-        sed -i 's|os=.*|os=Windows|' "$PROFILE_PATH"
+ensure_default_profile() {
+    if ! conan profile show default &> /dev/null; then
+        echo "Default profile not found, creating it..."
+        conan profile detect --name=default || { echo "Failed to create default Conan profile"; exit 1; }
     fi
+}
 
-    sed -i 's|build_type=.*|build_type=Release|' "$PROFILE_PATH"
-    sed -i 's|compiler.cppstd=.*|compiler.cppstd=23|' "$PROFILE_PATH"
-fi
+create_and_configure_release_profile() {
+    if ! conan profile show release &> /dev/null; then
+        echo "Creating 'release' Conan profile..."
+        conan profile detect --name=release --force || { echo "Failed to create Conan profile"; exit 1; }
+
+        echo "Configuring 'release' profile..."
+
+        PROFILE_PATH=$(conan profile path release)
+
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' 's|compiler=.*|compiler=apple-clang|' "$PROFILE_PATH"
+            sed -i '' 's|compiler.libcxx=.*|compiler.libcxx=libc++|' "$PROFILE_PATH"
+            sed -i '' 's|os=.*|os=Macos|' "$PROFILE_PATH"
+            sw_version=$(sw_vers -productVersion)
+            sed -i '' "s|os.version=.*|os.version=$sw_version|" "$PROFILE_PATH"
+        elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            sed -i 's|compiler=.*|compiler=gcc|' "$PROFILE_PATH"
+            sed -i 's|compiler.libcxx=.*|compiler.libcxx=libstdc++|' "$PROFILE_PATH"
+            sed -i 's|os=.*|os=Linux|' "$PROFILE_PATH"
+        elif [[ "$OSTYPE" == "msys" ]]; then
+            sed -i 's|compiler=.*|compiler=Visual Studio|' "$PROFILE_PATH"
+            sed -i 's|compiler.version=.*|compiler.version=17|' "$PROFILE_PATH"
+            sed -i 's|compiler.runtime=.*|compiler.runtime=MD|' "$PROFILE_PATH"
+            sed -i 's|arch=.*|arch=x86_64|' "$PROFILE_PATH"
+            sed -i 's|os=.*|os=Windows|' "$PROFILE_PATH"
+        fi
+
+        sed -i 's|build_type=.*|build_type=Release|' "$PROFILE_PATH"
+        sed -i 's|compiler.cppstd=.*|compiler.cppstd=23|' "$PROFILE_PATH"
+    fi
+}
+
+
+ensure_default_profile
+create_and_configure_release_profile
 
 # Install dependencies using Conan
 conan install . --build=missing || { echo "Conan install failed"; exit 1; }

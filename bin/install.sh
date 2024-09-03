@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define paths
-SERVICE_FILE="../install/forti-hole.service"
-TIMER_FILE="../install/forti-hole-5am.timer"
+SERVICE_FILE="./install/forti-hole.service"
+TIMER_FILE="./install/forti-hole-5am.timer"
 SYSTEMD_PATH="/etc/systemd/system"
 RUN_SCRIPT_PATH="$(pwd)/run.sh"
 

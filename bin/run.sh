@@ -29,7 +29,7 @@ if [[ "$any_missing" == true ]]; then
     echo "DEBUG: Running build.sh to resolve missing dependencies..."
 
     # Run the build script
-    ../bin/build.sh
+    ./bin/build.sh
 
     # Print final messages and exit if config.yaml or .env were missing
     if [[ ! -f "$CONFIG_FILE" || ! -f "$ENV_FILE" ]]; then

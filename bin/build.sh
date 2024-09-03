@@ -22,7 +22,7 @@ fi
 
 # Ensure Conan is installed
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    if ! command -v conan &> /dev/null; then
+    if ! command vconan &> /dev/null; then
         echo "Conan could not be found, installing..."
         sudo apt install conan || { echo "Conan installation failed"; exit 1; }
     fi
@@ -105,10 +105,12 @@ fi
 # Check for existing config.yaml and .env files
 if [[ ! -f ./config.yaml ]]; then
     cp ./config.example.yaml ./config.yaml || { echo "Failed to copy config.yaml"; exit 1; }
+    echo "config.yaml created in build directory. Please configure it to match your Fortigate device before running the program."
 fi
 
 if [[ ! -f ./.env ]]; then
     cp ./.env.example ./.env || { echo "Failed to copy .env"; exit 1; }
+    echo ".env created in build directory. Please configure it to match your Fortigate device before running the program."
 fi
 
 echo "Build and installation completed successfully."

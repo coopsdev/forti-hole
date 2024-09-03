@@ -22,10 +22,26 @@ fi
 
 # Ensure Conan is installed
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    if ! command vconan &> /dev/null; then
-        echo "Conan could not be found, installing..."
-        sudo apt install conan || { echo "Conan installation failed"; exit 1; }
+    if ! command -v conan &> /dev/null; then
+        echo "Conan could not be found, installing via pipx..."
+
+        # Ensure pipx is installed
+        if ! command -v pipx &> /dev/null; then
+            echo "pipx could not be found, installing..."
+            python3 -m pip install --user pipx || { echo "pipx installation failed"; exit 1; }
+            python3 -m pipx ensurepath || { echo "pipx ensurepath failed"; exit 1; }
+            # Update PATH in the current shell session
+            export PATH="$HOME/.local/bin:$PATH"
+        fi
+
+        # Install Conan via pipx
+        pipx install conan || { echo "Conan installation via pipx failed"; exit 1; }
     fi
+
+    # Ensure the PATH is updated for Conan installed via pipx
+    export PATH="$HOME/.local/bin:$PATH"
+    echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     if ! command -v conan &> /dev/null; then
         echo "Conan could not be found, installing..."

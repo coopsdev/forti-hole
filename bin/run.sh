@@ -2,7 +2,7 @@
 
 CONFIG_FILE="../config.yaml"
 ENV_FILE="../.env"
-EXECUTABLE="../forti-hole"
+EXECUTABLE="../build/meson/forti-hole"
 
 any_missing=false
 

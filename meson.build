@@ -4,7 +4,7 @@ project('forti-hole', 'cpp',
 
 source_root = meson.source_root()
 
-forti_api_dep = dependency('forti_api', required: true)
+forti_api_dep = dependency('forti-api', required: true)
 yaml_dep = dependency('yaml-cpp', required: true)
 libcurl_dep = dependency('libcurl', required: true)
 

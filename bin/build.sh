@@ -189,13 +189,7 @@ create_and_configure_release_profile
 # Install dependencies using Conan
 conan install . --build=missing || { echo "Conan install failed"; exit 1; }
 
-# Build the project with the 'release' profile
-if [[ "$OSTYPE" == "msys" ]]; then
-    meson setup builddir --backend=vs2017 || { echo "Meson setup failed"; exit 1; }
-else
-    meson setup builddir || { echo "Meson setup failed"; exit 1; }
-fi
-
+# Build the project for release
 conan build . -pr:a release --build=missing || { echo "Build failed"; exit 1; }
 
 # Check for existing config.yaml and .env files

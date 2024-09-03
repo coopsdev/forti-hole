@@ -89,14 +89,14 @@ fi
 # Check for 'release' Conan profile
 if ! conan profile show release &> /dev/null; then
     echo "Creating 'release' Conan profile..."
-    conan profile new release --detect || { echo "Failed to create Conan profile"; exit 1; }
+    conan profile detect --name=release --force || { echo "Failed to create Conan profile"; exit 1; }
 
     echo "Configuring 'release' profile..."
     conan profile update settings.build_type=Release release
     conan profile update settings.compiler.cppstd=23 release
 
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        conan profile update settings.compiler=clang release
+        conan profile update settings.compiler=apple-clang release
         conan profile update settings.compiler.libcxx=libc++ release
         conan profile update settings.os=Macos release
         conan profile update settings.os.version=$(sw_vers -productVersion) release

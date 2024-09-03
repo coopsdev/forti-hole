@@ -90,7 +90,7 @@ fi
 ensure_forti_api_remote() {
     if ! conan remote list | grep -q 'forti-api'; then
         echo "Adding 'forti-api' Conan remote..."
-        conan remote add forti-api https://repo.cooperhlarson.com/artifactory/fortigate/ || { echo "Failed to add 'forti-api' Conan remote"; exit 1; }
+        conan remote add forti-api https://repo.cooperhlarson.com/artifactory/api/conan/fortigate || { echo "Failed to add 'forti-api' Conan remote"; exit 1; }
     else
         echo "'forti-api' Conan remote already exists."
     fi

@@ -72,7 +72,16 @@ struct NamingConvention {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(NamingConvention, prefix, security_level, file_index)
 };
 
+struct FortiGateConfig {
+    unsigned int admin_https_port{};
+    std::string gateway_ip, ca_cert_path, ssl_cert_path;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(FortiGateConfig, admin_https_port, gateway_ip,
+                                                ca_cert_path, ssl_cert_path)
+};
+
 struct Config {
+    FortiGateConfig fortigate;
     std::string output_dir;
     NamingConvention naming_convention;
     bool write_files_to_disk{}, remove_all_threat_feeds_on_run{};
@@ -83,7 +92,7 @@ struct Config {
     Config() = default;
     explicit Config(const YAML::Node& node) { *this = yamlToJson(node); }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Config, output_dir, naming_convention, write_files_to_disk,
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Config, fortigate, output_dir, naming_convention, write_files_to_disk,
                                                 remove_all_threat_feeds_on_run, categories,
                                                 forti_hole_automated_dns_filters, blocklist_sources);
 };

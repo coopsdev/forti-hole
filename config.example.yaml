@@ -1,5 +1,8 @@
 # FortiGate connection settings
-fortigate:
+
+# THIS CONFIGURATION IS BROKEN AT THE MOMENT, FIX PLANNED VERY SOON
+# Please use the update .env.example file to configure the necessary variables there
+fortigate:  # BROKEN!!!
   admin_https_port: 44300  # HTTPS port for FortiGate admin access (default is 44300, but can be customized)
   gateway_ip: '192.168.1.1'  # IP address of the FortiGate gateway, relative to the device running this script
   ca_cert_path: '/path/to/fortigate/ca.cer'  # Path to the FortiGate CA certificate (typically the global CA)

@@ -9,14 +9,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
-FortiHole::FortiHole() : scraper(), config(scraper.config) {
-    lists_by_security_level = scraper();
-
-    setenv("FORTIGATE_GATEWAY_IP", config.fortigate.gateway_ip.c_str(), 1);
-    setenv("FORTIGATE_ADMIN_SSH_PORT", std::to_string(config.fortigate.admin_https_port).c_str(), 1);
-    setenv("PATH_TO_FORTIGATE_CA_CERT", config.fortigate.ca_cert_path.c_str(), 1);
-    setenv("PATH_TO_FORTIGATE_SSL_CERT", config.fortigate.ssl_cert_path.c_str(), 1);
-}
+FortiHole::FortiHole() : scraper(), config(scraper.config) { lists_by_security_level = scraper(); }
 
 void FortiHole::operator()() {
     auto start = std::chrono::high_resolution_clock::now();

@@ -87,14 +87,16 @@ else
 fi
 
 ensure_default_profile() {
-    if ! conan profile show default &> /dev/null; then
+    if ! conan profile show -pr:a default &> /dev/null; then
         echo "Default profile not found, creating it..."
         conan profile detect --name=default || { echo "Failed to create default Conan profile"; exit 1; }
+    else
+        echo "Default profile already exists."
     fi
 }
 
 create_and_configure_release_profile() {
-    if ! conan profile show release &> /dev/null; then
+    if ! conan profile show -pr:a release &> /dev/null; then
         echo "Creating 'release' Conan profile..."
         conan profile detect --name=release --force || { echo "Failed to create Conan profile"; exit 1; }
 

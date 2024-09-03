@@ -92,25 +92,29 @@ if ! conan profile show release &> /dev/null; then
     conan profile detect --name=release --force || { echo "Failed to create Conan profile"; exit 1; }
 
     echo "Configuring 'release' profile..."
-    conan profile update settings.build_type=Release release
-    conan profile update settings.compiler.cppstd=23 release
+
+    PROFILE_PATH=$(conan profile path release)
 
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        conan profile update settings.compiler=apple-clang release
-        conan profile update settings.compiler.libcxx=libc++ release
-        conan profile update settings.os=Macos release
-        conan profile update settings.os.version=$(sw_vers -productVersion) release
+        sed -i '' 's|compiler=.*|compiler=apple-clang|' "$PROFILE_PATH"
+        sed -i '' 's|compiler.libcxx=.*|compiler.libcxx=libc++|' "$PROFILE_PATH"
+        sed -i '' 's|os=.*|os=Macos|' "$PROFILE_PATH"
+        sw_version=$(sw_vers -productVersion)
+        sed -i '' "s|os.version=.*|os.version=$sw_version|" "$PROFILE_PATH"
     elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        conan profile update settings.compiler=gcc release
-        conan profile update settings.compiler.libcxx=libstdc++ release
-        conan profile update settings.os=Linux release
+        sed -i 's|compiler=.*|compiler=gcc|' "$PROFILE_PATH"
+        sed -i 's|compiler.libcxx=.*|compiler.libcxx=libstdc++|' "$PROFILE_PATH"
+        sed -i 's|os=.*|os=Linux|' "$PROFILE_PATH"
     elif [[ "$OSTYPE" == "msys" ]]; then
-        conan profile update settings.compiler="Visual Studio" release
-        conan profile update settings.compiler.version=17 release
-        conan profile update settings.compiler.runtime=MD release
-        conan profile update settings.arch=x86_64 release
-        conan profile update settings.os=Windows release
+        sed -i 's|compiler=.*|compiler=Visual Studio|' "$PROFILE_PATH"
+        sed -i 's|compiler.version=.*|compiler.version=17|' "$PROFILE_PATH"
+        sed -i 's|compiler.runtime=.*|compiler.runtime=MD|' "$PROFILE_PATH"
+        sed -i 's|arch=.*|arch=x86_64|' "$PROFILE_PATH"
+        sed -i 's|os=.*|os=Windows|' "$PROFILE_PATH"
     fi
+
+    sed -i 's|build_type=.*|build_type=Release|' "$PROFILE_PATH"
+    sed -i 's|compiler.cppstd=.*|compiler.cppstd=23|' "$PROFILE_PATH"
 fi
 
 # Install dependencies using Conan

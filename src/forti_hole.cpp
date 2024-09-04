@@ -122,12 +122,12 @@ void FortiHole::update_threat_feeds() {
                   << ", LPF: " << info.lines_per_file
                   << " }" << std::endl;
 
+        std::vector<std::string> to_upload;
+        to_upload.reserve(info.lines_per_file + 1);
+
         auto iter = lists_by_security_level[security_level].begin();
         for (size_t i = 0; i < info.file_count; ++i) {
             auto filename = get_file_name(security_level, i + 1);
-
-            std::vector<std::string> to_upload;
-            to_upload.reserve(info.lines_per_file + info.extra);
 
             size_t count = info.lines_per_file + (i < info.extra ? 1 : 0);
             for (size_t j = 0; j < count; ++j) {
@@ -140,6 +140,8 @@ void FortiHole::update_threat_feeds() {
             if (config.write_files_to_disk) create_file(filename, to_upload);
             ThreatFeed::update_feed({{filename, to_upload}});
             std::cout << "Successfully pushed to Fortigate: " << filename << std::endl;
+
+            to_upload.clear();
 
             // give the FortiGate a chance to process the new data,
             // prevents network interruptions from buffer overflow

@@ -129,20 +129,17 @@ void FortiHole::update_threat_feeds() {
         for (size_t i = 0; i < info.file_count; ++i) {
             auto filename = get_file_name(security_level, i + 1);
 
-            size_t count = info.lines_per_file + (i < info.extra ? 1 : 0);
-            for (size_t j = 0; j < count; ++j) {
-                if (iter == lists_by_security_level[security_level].end()) break;
-                to_upload.push_back(*iter);
-                ++iter;
-            }
+            while (iter++ != lists_by_security_level[security_level].end()) to_upload.push_back(*iter);
 
             std::cout << "\nBuilt file: " << filename << " with " << to_upload.size() << " lines." << std::endl;
 
             if (config.write_files_to_disk) create_file(filename, to_upload);
+
             ThreatFeed::update_feed({{filename, to_upload}});
-            std::cout << "Successfully pushed to Fortigate: " << filename << std::endl;
 
             to_upload.clear();
+
+            std::cout << "Successfully pushed to Fortigate: " << filename << std::endl;
 
             // give the FortiGate a chance to process the new data,
             // prevents network interruptions from buffer overflow

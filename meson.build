@@ -1,5 +1,5 @@
 project('forti-hole', 'cpp',
-        version : '0.2.0',
+        version : '0.2.1',
         default_options : ['warning_level=3', 'cpp_std=c++23'])
 
 source_root = meson.source_root()
@@ -18,7 +18,10 @@ endforeach
 main_cpp = files(source_root + '/main.cpp')
 
 if get_option('buildtype') == 'debug'
-        add_project_arguments('-DENABLE_DEBUG', language: 'cpp')
+
+        if host_machine.system() == 'linux'
+                add_project_arguments('-DENABLE_DEBUG', language: 'cpp')
+        endif
 
         gtest_dep = dependency('gtest', required : true, main : true)
 

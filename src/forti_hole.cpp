@@ -8,8 +8,17 @@
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <cstdlib>
 
-FortiHole::FortiHole() : scraper(), config(scraper.config) { lists_by_security_level = scraper(); }
+FortiHole::FortiHole(const std::string& config_file) :
+        config(YAML::LoadFile(config_file)), scraper(config), lists_by_security_level(scraper()) {
+    FortiAuth::set_gateway_ip(config.fortigate.gateway_ip);
+    FortiAuth::set_admin_https_port(config.fortigate.admin_https_port);
+    FortiAuth::set_ca_cert_path(config.fortigate.ca_cert_path);
+    FortiAuth::set_ssl_cert_path(config.fortigate.ssl_cert_path);
+    FortiAuth::set_api_key(std::getenv("FORTIGATE_API_KEY"));
+    FortiAuth::set_cert_password(std::getenv("FORTIGATE_SSL_CERT_PASS"));
+}
 
 void FortiHole::operator()() {
     auto start = std::chrono::high_resolution_clock::now();

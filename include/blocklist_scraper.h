@@ -37,7 +37,7 @@ class BlocklistScraper {
     void process_domains(const std::string& content, std::unordered_set<std::string>& target_set);
 
 public:
-    explicit BlocklistScraper(const std::string& config_file = "../config.yaml");
+    explicit BlocklistScraper(const Config& config);
 
     std::unordered_map<unsigned int, std::unordered_set<std::string>> operator()();
 };

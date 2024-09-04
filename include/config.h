@@ -15,7 +15,7 @@ inline static nlohmann::json yamlToJson(const YAML::Node& node) {
     nlohmann::json json;
 
     if (node.IsScalar()) {
-        try { json = node.as<int>(); }  // try to parse as int first
+        try { json = node.as<unsigned int>(); }  // try to parse as unsigned int first
         catch (const YAML::BadConversion&) {
             try { json = node.as<double>(); }  // not int, try as double
             catch (const YAML::BadConversion&) {

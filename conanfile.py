@@ -24,7 +24,7 @@ class Pkg(ConanFile):
 
     def requirements(self):
         self.requires('nlohmann_json/3.11.3')
-        self.requires('forti-api/0.1.12')
+        self.requires('forti-api/0.2.0')
         self.requires('yaml-cpp/0.8.0')
         self.requires('libcurl/8.9.1')
         self.test_requires('gtest/1.14.0')

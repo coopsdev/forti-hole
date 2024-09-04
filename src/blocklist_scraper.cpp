@@ -9,7 +9,7 @@
 #include <memory>
 #include <future>
 
-BlocklistScraper::BlocklistScraper(const std::string& config_file) : config(YAML::LoadFile(config_file)) {}
+BlocklistScraper::BlocklistScraper(const Config& config) : config(config) {}
 
 std::unordered_map<unsigned int, std::unordered_set<std::string>> BlocklistScraper::operator()() {
     std::cout << "Starting blocklist scraping process...\n" << std::endl;

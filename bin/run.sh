@@ -1,7 +1,6 @@
 #!/bin/bash
 
 CONFIG_FILE="./config.yaml"
-ENV_FILE="./.env"
 EXECUTABLE="./build/meson/forti-hole"
 
 any_missing=false
@@ -26,9 +25,9 @@ if [[ "$any_missing" == true ]]; then
     ./bin/build.sh
 
     # Print final messages and exit if config.yaml or .env were missing
-    if [[ ! -f "$CONFIG_FILE" || ! -f "$ENV_FILE" ]]; then
-        echo "ERROR: config.yaml or .env were missing. They have been created in the build directory."
-        echo "Please configure them to match your Fortigate device before running the program."
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        echo "ERROR: config.yaml is missing. It has been created in the build directory."
+        echo "Please configure to match your Fortigate device before running the program."
         exit 1
     fi
 fi

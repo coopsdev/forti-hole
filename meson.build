@@ -20,6 +20,8 @@ main_cpp = files(source_root + '/main.cpp')
 forti_hole = executable('forti-hole', sources + main_cpp, dependencies: global_deps, install : true)
 
 if get_option('buildtype') == 'debug'
+        add_project_arguments('-DENABLE_DEBUG', language: 'cpp')
+
         gtest_dep = dependency('gtest', required : true, main : true)
 
         test_deps = global_deps + gtest_dep

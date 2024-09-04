@@ -255,8 +255,36 @@ conan build . -pr:a release --build=missing || { echo "Build failed"; exit 1; }
 
 # Check for existing config.yaml, create from template if missing
 if [[ ! -f ./config.yaml ]]; then
-    cp ./config.example.yaml ./config.yaml || { echo "Failed to copy config.yaml"; exit 1; }
-    echo "config.yaml created in build directory. Please configure it to match your Fortigate device before running the program."
-fi
+    cp ./config.example.yaml ./config.yaml || { echo "❌ Failed to copy config.yaml"; exit 1; }
+    echo "
+    ==========================================================
+    ✨🎉  Forti-hole Installation Successful! 🎉✨
+    ==========================================================
 
-echo "Build and installation completed successfully."
+    ✅ All phases of the build succeeded!
+    ✅ config.yaml created in the build directory.
+    🛠️ Please configure it to match your Fortigate device
+       before running the program.
+
+    🚀 Your almost ready to go! Once configured, you can start the
+       program with:
+       ./bin/run.sh
+
+    ==========================================================
+    "
+else
+    echo "
+    ==========================================================
+    🚀 Build Forti-hole Completed Successfully! 🚀
+    ==========================================================
+
+    ✅ All phases of the build succeeded!
+
+    🔄 To rebuild, adjust your settings and re-run the script.
+    ▶️ If the program doesn't start automatically, you can
+       manually launch it with:
+       ./bin/run.sh
+
+    ==========================================================
+    "
+fi

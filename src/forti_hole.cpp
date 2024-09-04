@@ -131,6 +131,7 @@ void FortiHole::update_threat_feeds() {
 
             size_t count = info.lines_per_file + (i < info.extra ? 1 : 0);
             for (size_t j = 0; j < count; ++j) {
+                if (iter == lists_by_security_level[security_level].end()) break;
                 to_upload.push_back(*iter);
                 ++iter;
             }

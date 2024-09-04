@@ -233,15 +233,10 @@ conan install . --build=missing || { echo "Conan install failed"; exit 1; }
 # Build the project for release
 conan build . -pr:a release --build=missing || { echo "Build failed"; exit 1; }
 
-# Check for existing config.yaml and .env files
+# Check for existing config.yaml, create from template if missing
 if [[ ! -f ./config.yaml ]]; then
     cp ./config.example.yaml ./config.yaml || { echo "Failed to copy config.yaml"; exit 1; }
     echo "config.yaml created in build directory. Please configure it to match your Fortigate device before running the program."
-fi
-
-if [[ ! -f ./.env ]]; then
-    cp ./.env.example ./.env || { echo "Failed to copy .env"; exit 1; }
-    echo ".env created in build directory. Please configure it to match your Fortigate device before running the program."
 fi
 
 echo "Build and installation completed successfully."

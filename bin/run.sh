@@ -12,12 +12,6 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
     any_missing=true
 fi
 
-# Check if .env exists
-if [[ ! -f "$ENV_FILE" ]]; then
-    echo "DEBUG: $ENV_FILE is missing."
-    any_missing=true
-fi
-
 # Check if the executable exists
 if [[ ! -f "$EXECUTABLE" ]]; then
     echo "DEBUG: $EXECUTABLE is missing."

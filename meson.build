@@ -17,8 +17,6 @@ endforeach
 
 main_cpp = files(source_root + '/main.cpp')
 
-forti_hole = executable('forti-hole', sources + main_cpp, dependencies: global_deps, install : true)
-
 if get_option('buildtype') == 'debug'
         add_project_arguments('-DENABLE_DEBUG', language: 'cpp')
 
@@ -33,3 +31,5 @@ if get_option('buildtype') == 'debug'
 
         test('runTests', executable('runTests', test_sources, dependencies: test_deps))
 endif
+
+forti_hole = executable('forti-hole', sources + main_cpp, dependencies: global_deps, install : true)

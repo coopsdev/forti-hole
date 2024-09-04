@@ -1,12 +1,12 @@
 # FortiGate connection settings
-
-# THIS CONFIGURATION IS BROKEN AT THE MOMENT, FIX PLANNED VERY SOON
-# Please use the update .env.example file to configure the necessary variables there
-fortigate:  # BROKEN!!!
+fortigate:
+  api_key: your_fortigate_api_key
+  gateway_ip: 192.168.1.1  # IP address of the FortiGate gateway, relative to the device running this script
   admin_https_port: 44300  # HTTPS port for FortiGate admin access (default is 44300, but can be customized)
-  gateway_ip: '192.168.1.1'  # IP address of the FortiGate gateway, relative to the device running this script
-  ca_cert_path: '/path/to/fortigate/ca.cer'  # Path to the FortiGate CA certificate (typically the global CA)
-  ssl_cert_path: '/path/to/fortigate/ssl.p12'  # Path to your SSL certificate (.p12 format)
+  certificates:
+    ca_cert_path: ~/.ssl/Fortinet_CA_SSL.cer  # Path to the FortiGate CA certificate (typically the global CA)
+    ssl_cert_path: ~/.ssl/fortigate.p12  # Path to your SSL certificate (.p12 format)
+    ssl_cert_password: p12_cert_password  # The ssl certificate.p12 password
 
   # SSL certificate setup:
   # 1. Generate a private key.

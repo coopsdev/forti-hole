@@ -72,12 +72,19 @@ struct NamingConvention {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(NamingConvention, prefix, security_level, file_index)
 };
 
-struct FortiGateConfig {
-    unsigned int admin_https_port{};
-    std::string gateway_ip, ca_cert_path, ssl_cert_path;
+struct Certificates {
+    std::string ca_cert_path, ssl_cert_path, ssl_cert_password;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(FortiGateConfig, admin_https_port, gateway_ip,
-                                                ca_cert_path, ssl_cert_path)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Certificates, ca_cert_path, ssl_cert_path, ssl_cert_password)
+};
+
+struct FortiGateConfig {
+    std::string api_key, gateway_ip;
+    unsigned int admin_https_port{};
+    Certificates certificates;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(FortiGateConfig, api_key, gateway_ip, admin_https_port,
+                                                certificates)
 };
 
 struct Config {

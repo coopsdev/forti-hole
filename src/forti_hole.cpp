@@ -14,16 +14,17 @@ FortiHole::FortiHole(const std::string& config_file) :
         config(YAML::LoadFile(config_file)), scraper(config), lists_by_security_level(scraper()) {
     FortiAuth::set_gateway_ip(config.fortigate.gateway_ip);
     FortiAuth::set_admin_https_port(config.fortigate.admin_https_port);
-    FortiAuth::set_ca_cert_path(config.fortigate.ca_cert_path);
-    FortiAuth::set_ssl_cert_path(config.fortigate.ssl_cert_path);
-    FortiAuth::set_api_key(std::getenv("FORTIGATE_API_KEY"));
-    FortiAuth::set_cert_password(std::getenv("FORTIGATE_SSL_CERT_PASS"));
+    FortiAuth::set_ca_cert_path(config.fortigate.certificates.ca_cert_path);
+    FortiAuth::set_ssl_cert_path(config.fortigate.certificates.ssl_cert_path);
+    FortiAuth::set_api_key(config.fortigate.api_key);
+    FortiAuth::set_cert_password(config.fortigate.certificates.ssl_cert_password);
 }
 
 void FortiHole::operator()() {
     auto start = std::chrono::high_resolution_clock::now();
 
-    if (!std::filesystem::exists(config.output_dir)) std::filesystem::create_directories(config.output_dir);
+    if (config.write_files_to_disk && !std::filesystem::exists(config.output_dir))
+        std::filesystem::create_directories(config.output_dir);
     if (config.remove_all_threat_feeds_on_run) remove_all_custom_threat_feeds();
 
     std::cout << "Consolidating data..." << std::endl;

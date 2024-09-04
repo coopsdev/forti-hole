@@ -139,7 +139,7 @@ void FortiHole::update_threat_feeds() {
 
             if (config.write_files_to_disk) create_file(filename, to_upload);
             ThreatFeed::update_feed({{filename, to_upload}});
-            std::cout << "Successfully uploaded to FortiGate: " << filename << std::endl;
+            std::cout << "Successfully pushed to Fortigate: " << filename << std::endl;
 
             // give the FortiGate a chance to process the new data,
             // prevents network interruptions from buffer overflow

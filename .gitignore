@@ -3,4 +3,4 @@ build
 .idea
 *.iml
 *.xml
-config.yaml
+*config.yaml

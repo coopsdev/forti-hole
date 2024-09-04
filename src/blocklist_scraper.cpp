@@ -96,8 +96,8 @@ void BlocklistScraper::fetch_multi() {
 void BlocklistScraper::process_multi() {
     std::cout << "Parsing response data...\n" << std::endl;
     for (auto& request : requests) {
-        std::cout << "Parsing response data: " << request.url << std::endl;
         process_domains(request.response, lists_by_security_level[request.security_level]);
+        std::cout << "Finished: " << request.url << std::endl;
     }
     std::cout << "\nBlocklist processing successfully completed...\n" << std::endl;
 }

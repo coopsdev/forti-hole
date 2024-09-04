@@ -1,5 +1,25 @@
 #!/bin/bash
 
+
+BUILD_DIR="./build"
+
+# Check if the ./build directory exists
+if [ -d "$BUILD_DIR" ]; then
+    echo "Directory '$BUILD_DIR' exists. Deleting it..."
+
+    # Attempt to remove the build directory
+    rm -rf "$BUILD_DIR"
+
+    # Check if the directory was successfully removed
+    if [ ! -d "$BUILD_DIR" ]; then
+        echo "Directory '$BUILD_DIR' successfully deleted."
+    else
+        echo "Failed to delete the directory '$BUILD_DIR'. Please check permissions."
+    fi
+else
+    echo "Directory '$BUILD_DIR' does not exist."
+fi
+
 # Function to set up a Python virtual environment
 setup_venv() {
     python3 -m venv venv || { echo "Failed to create virtual environment"; exit 1; }

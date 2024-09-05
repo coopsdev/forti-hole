@@ -1,13 +1,87 @@
 #!/bin/bash
 
-# Define paths
+# Check the OS type and handle non-Linux systems
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    if pidof systemd > /dev/null; then
+        echo "==========================================================
+        🚀 Systemd Detected! Proceeding with the installation... 🚀
+        =========================================================="
+    else
+        echo "
+        ==========================================================
+        ⚠️  Unsupported Linux Distribution  ⚠️
+        ==========================================================
+        ❌ Systemd is not detected on this Linux distribution.
+        This install script only supports Linux distributions
+        with systemd for service management.
+
+        Please switch to a Linux distribution with systemd support
+        and try again. 🐧
+        ==========================================================
+        "
+        exit 1
+    fi
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "
+    ==========================================================
+    🍎 Unsupported Operating System: macOS 🍎
+    ==========================================================
+    ❌ This install script is not compatible with macOS.
+    It is designed to run only on Linux distributions with
+    systemd for service management.
+
+    Please switch to a Linux system with systemd support. 🐧
+
+    OR... this script can be easily extended by a developer
+    with ample need to support their OS, in which case, I
+    invite you to become a collaborator and help make
+    Forti-hole a more robust Fortigate management tool! 🚀
+    ==========================================================
+    "
+    exit 1
+elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+    echo "
+    ==========================================================
+    🪟 Unsupported Operating System: Windows 🪟
+    ==========================================================
+    ❌ This install script is not compatible with Windows.
+    It is designed to run only on Linux distributions with
+    systemd for service management.
+
+    Please switch to a Linux system with systemd support. 🐧
+
+    OR... this script can be easily extended by a developer
+    with ample need to support their OS, in which case, I
+    invite you to become a collaborator and help make
+    Forti-hole a more robust Fortigate management tool! 🚀
+    ==========================================================
+    "
+    exit 1
+else
+    echo "
+    ==========================================================
+    ❓ Unsupported Operating System: $OSTYPE ❓
+    ==========================================================
+    ❌ This install script only supports Linux distributions
+    with systemd for service management.
+
+    Please switch to a Linux system with systemd support. 🐧
+
+    OR... this script can be easily extended by a developer
+    with ample need to support their OS, in which case, I
+    invite you to become a collaborator and help make
+    Forti-hole a more robust Fortigate management tool! 🚀
+    ==========================================================
+    "
+    exit 1
+fi
+
 SERVICE_FILE="./install/forti-hole.service"
 TIMER_FILE="./install/forti-hole-5am.timer"
 SYSTEMD_PATH="/etc/systemd/system"
 RUN_SCRIPT_PATH="$(pwd)/bin/run.sh"
 WORKING_DIRECTORY="$(pwd)"
 
-# Get the current user and group
 current_user=$(whoami)
 current_group=$(id -gn)
 

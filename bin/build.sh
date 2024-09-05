@@ -257,21 +257,33 @@ conan build . -pr:a release --build=missing || { echo "Build failed"; exit 1; }
 if [[ ! -f ./config.yaml ]]; then
     cp ./config.example.yaml ./config.yaml || { echo "❌ Failed to copy config.yaml"; exit 1; }
     echo "
-    ==========================================================
-    ✨🎉  Forti-hole Installation Successful! 🎉✨
-    ==========================================================
+        ==========================================================
+        ✨🎉  Forti-hole Installation Successful! 🎉✨
+        ==========================================================
 
-    ✅ All phases of the build succeeded!
-    ✅ config.yaml created in the build directory.
-    🛠️ Please configure it to match your Fortigate device
-       before running the program.
+        ✅ All phases of the build succeeded!
+        ✅ config.yaml has been created in the build directory.
 
-    🚀 Your almost ready to go! Once configured, you can start the
-       program with:
-       ./bin/run.sh
+        🛠️ Next Steps:
+        Please configure the config.yaml to match your FortiGate device before running the program. Here are the key settings to update:
 
-    ==========================================================
-    "
+        🔑 Key Configurations Required in config.yaml:
+
+        * fortigate.api_key         - Your FortiGate API key (generated in the FortiGate admin panel).
+        * fortigate.gateway_ip      - The IP address of the FortiGate gateway (e.g., 192.168.1.1).
+        * fortigate.admin_https_port - HTTPS port for FortiGate admin access (default: 8443, or your custom port).
+        * certificates.ca_cert_path  - Path to the FortiGate CA certificate for secure connections.
+        * certificates.ssl_cert_path - Path to your SSL certificate file (.p12 format).
+        * certificates.ssl_cert_password - Password for your SSL certificate (.p12).
+
+        ==========================================================
+        🚀 Once the configuration is complete, you're ready to go! Start the program with:
+            ./bin/run.sh
+
+        ❗ Need help with configuring config.yaml? Check the README.md for further instructions.
+
+        ==========================================================
+        "
 else
     echo "
     ==========================================================

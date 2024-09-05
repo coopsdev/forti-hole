@@ -11,7 +11,11 @@
 #include <cstdlib>
 
 FortiHole::FortiHole(const std::string& config_file) :
-        config(YAML::LoadFile(config_file)), scraper(config), lists_by_security_level(scraper()) {
+        config(YAML::LoadFile(config_file)) {
+    {
+        BlocklistScraper scraper(config);
+        lists_by_security_level = scraper();
+    }
     FortiAuth::set_gateway_ip(config.fortigate.gateway_ip);
     FortiAuth::set_admin_https_port(config.fortigate.admin_https_port);
     FortiAuth::set_ca_cert_path(config.fortigate.certificates.ca_cert_path);

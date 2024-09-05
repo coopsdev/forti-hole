@@ -24,7 +24,6 @@ class FortiHole {
     static constexpr unsigned int MAX_LINES_PER_FILE = 131000;
 
     Config config;
-    BlocklistScraper scraper;
     std::unordered_map<unsigned int, std::unordered_set<std::string>> lists_by_security_level;
     std::vector<ThreatFeedInfo> info_by_security_level{};
 

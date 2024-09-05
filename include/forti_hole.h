@@ -5,12 +5,22 @@
 #ifndef FORTI_HOLE_FORTI_HOLE_H
 #define FORTI_HOLE_FORTI_HOLE_H
 
-#include "include/blocklist_scraper.h"
 #include "include/config.h"
 #include <yaml-cpp/yaml.h>
 #include <filesystem>
+#include <regex>
+#include <unordered_set>
 
 class FortiHole {
+
+    inline static std::regex domain_regex{R"(\|\|([^\^]*?)\^)"};
+    inline static std::regex valid_dns_regex{R"(^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$)"};
+
+    struct Request {
+        std::string url;
+        unsigned int security_level;
+        std::string response;
+    };
 
     struct ThreatFeedInfo {
         size_t total_lines, file_count, lines_per_file, extra, category_base;
@@ -24,8 +34,15 @@ class FortiHole {
     static constexpr unsigned int MAX_LINES_PER_FILE = 131000;
 
     Config config;
+    std::vector<Request> requests{};
     std::unordered_map<unsigned int, std::unordered_set<std::string>> lists_by_security_level;
     std::vector<ThreatFeedInfo> info_by_security_level{};
+    std::mutex mutex;
+
+    void process_config();
+    void fetch_multi();
+    void process_multi();
+    void process_domains(const std::string& content, std::unordered_set<std::string>& target_set);
 
     void merge();
     void build_threat_feed_info();

@@ -43,9 +43,6 @@ void FortiHole::operator()() {
         remove_all_custom_threat_feeds();
     }
 
-    std::cout << "Consolidating data..." << std::endl;
-    merge();
-
     std::cout << "Gathering threat feed information..." << std::endl;
     build_threat_feed_info();
 
@@ -65,12 +62,19 @@ void FortiHole::operator()() {
 
 void FortiHole::process_config() {
     std::cout << "Processing config file...\n" << std::endl;
+    unsigned int max_security = 0;
     for (const auto& entry : config.blocklist_sources) {
         for (const auto& src : entry.sources) {
             requests.push_back({entry.url + "/" + src.name + entry.postfix + ".txt", src.security_level, ""});
+            if (src.security_level > max_security) max_security = src.security_level;
         }
     }
-    lists_by_security_level = std::vector<std::unordered_set<std::string>>(requests.size());
+
+    // sort the requests to process lowest-security first
+    std::sort(requests.begin(), requests.end(), RequestComparator());
+
+    // instantiate the main lists with the number of security level + 1
+    lists_by_security_level = std::vector<std::unordered_set<std::string>>(max_security + 1);
 }
 
 size_t write_callback(void* ptr, size_t size, size_t nmemb, void* userdata) {
@@ -156,11 +160,23 @@ void FortiHole::process_multi() {
                 std::string::const_iterator searchStart(chunk.cbegin());
                 while (std::regex_search(searchStart, chunk.cend(), matches, domain_regex)) {
                     std::string domain = matches[1].str();
-                    if (std::regex_match(domain, valid_dns_regex)) {
+
+                    unsigned int lower_security_levels = request.security_level;
+                    bool match_found = false;
+                    while (lower_security_levels > 0) {
+                        if (lists_by_security_level[--lower_security_levels].contains(domain)) {
+                            match_found = true;
+                            break;
+                        }
+                    }
+
+                    searchStart = matches.suffix().first;  // leave this where it is
+
+                    if (match_found) continue;
+                    else if (std::regex_match(domain, valid_dns_regex)) {
                         std::scoped_lock lock(mutex);
                         lists_by_security_level[request.security_level].insert(domain);
                     }
-                    searchStart = matches.suffix().first;
                 }
             }));
         }
@@ -170,14 +186,6 @@ void FortiHole::process_multi() {
         std::cout << "Finished: " << request.url << std::endl;
     }
     std::cout << "\nBlocklist processing successfully completed...\n" << std::endl;
-}
-
-void FortiHole::merge() {
-    for (unsigned int i = lists_by_security_level.size() - 1; i > 0; --i) {
-        for (const auto& item : lists_by_security_level[i]) {
-            lists_by_security_level[i - 1].insert(item);
-        }
-    }
 }
 
 void FortiHole::build_threat_feed_info() {

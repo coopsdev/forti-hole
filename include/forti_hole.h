@@ -23,6 +23,10 @@ class FortiHole {
         std::string response;
     };
 
+    struct RequestComparator {
+        bool operator()(const Request& a, const Request& b) { return a.security_level < b.security_level; }
+    };
+
     struct ThreatFeedInfo {
         size_t total_lines, file_count, lines_per_file, extra, category_base;
 
@@ -46,7 +50,6 @@ class FortiHole {
     void process_multi();
 
     // forti-hole
-    void merge();
     void build_threat_feed_info();
     void create_threat_feeds();
     void enable_filters_and_policies();

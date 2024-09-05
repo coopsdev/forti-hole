@@ -134,6 +134,7 @@ void FortiHole::update_threat_feeds() {
             auto filename = get_file_name(security_level, i + 1);
 
             size_t count = info.lines_per_file + (i < info.extra ? 1 : 0);
+            std::cout << "Security Level " << security_level << ", file: " << i << ", count: " << count << std::endl;
             for (size_t j = 0; j < count; ++j) {
                 if (iter == lists_by_security_level[security_level].end()) break;
                 to_upload.push_back(*iter);

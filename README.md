@@ -1,5 +1,60 @@
 # forti-hole
 
+## Build and Installation Instructions
+
+### 👯 Step 1: Clone the Repository
+
+First, clone the **forti-hole** repository:
+
+```bash
+git clone https://github.com/coopsdev/forti-hole.git
+cd forti-hole
+```
+
+### 🛠 Step 2: Build the Program
+
+Run the `build.sh` script to compile the program and create the `config.yaml` file.
+
+```bash
+./bin/build.sh
+```
+
+This script will check if `config.yaml` exists and create it from `config.example.yaml` if necessary.
+
+### 👷 Step 3: Configure `config.yaml`
+
+Before running the program, make sure you properly configure the `config.yaml` file located in the build directory. Adjust the relevant settings to match your environment (e.g., API keys, IP addresses, and certificate paths).
+
+### 🚀 Step 4: Run the Program
+
+Once `config.yaml` is properly configured, you can run the program:
+
+```bash
+./bin/run.sh
+```
+
+This script will build the program if necessary and execute it using the configurations in `config.yaml`.
+
+### 🔃 Step 5: Install as a Systemd Service (Linux Only)
+
+To install **forti-hole** as a systemd service on Linux with a default 5am everyday run-timer, use the `install.sh` script:
+
+```bash
+./bin/install.sh
+```
+
+This script will install the program as a service, allowing it to run automatically on boot and at 5am (easily customizable) everyday.
+
+### 🪬 Step 6: Update the Program
+
+To update the repository, remove the build directory, and rebuild the program, run the `update.sh` script:
+
+```bash
+./bin/update.sh
+```
+
+This script pulls the latest changes from the repository, removes the existing build directory, and triggers a fresh build.
+
 ## Overview
 
 **forti-hole** is a cutting-edge DNS Threat Feed management tool, engineered for FortiGate users who need to manage DNS blocklists at an unprecedented scale. Inspired by Pi-hole, forti-hole is designed to tackle the challenges of handling massive domain lists, overcoming issues like buffer overflow and network traffic interruptions that plague FortiGate’s non-API managed threat feeds.

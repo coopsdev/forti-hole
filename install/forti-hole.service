@@ -6,6 +6,9 @@ After=network-online.target
 [Service]
 Type=oneshot
 OnBootSec=60
+User= # This line is auto-generated via the install script
+Group= # This line is auto-generated via the install script
+WorkingDirectory= # This line is auto-generated via the install script
 ExecStart= # This line is auto-generated via the install script
 
 [Install]

@@ -24,11 +24,17 @@ if [[ "$any_missing" == true ]]; then
     # Run the build script
     ./bin/build.sh
 
-    # Print final messages and exit if config.yaml or .env were missing
+    # Check if config.yaml is missing and provide guidance for next steps
     if [[ ! -f "$CONFIG_FILE" ]]; then
-        echo "ERROR: config.yaml is missing. It has been created in the build directory."
-        echo "Please configure to match your Fortigate device before running the program."
-        exit 1
+        echo "
+            ==========================================================
+
+            ✅ config.yaml has been created in the build directory.
+
+            🛠️  Scroll up and follow the instructions above to configure Forti-hole.
+
+            ==========================================================
+        "
     fi
 fi
 

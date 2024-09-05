@@ -26,13 +26,22 @@ void FortiHole::operator()() {
 
     std::cout << "Starting blocklist scraping process...\n" << std::endl;
     process_config();
+
+    std::cout << "Scraping blocklists...\n" << std::endl;
     fetch_multi();
-    std::cout << std::endl;
+
+    std::cout << "Parsing response data...\n" << std::endl;
     process_multi();
 
-    if (config.write_files_to_disk && !std::filesystem::exists(config.output_dir))
+    if (config.write_files_to_disk && !std::filesystem::exists(config.output_dir)) {
+        std::cout << "Creating output directory: " << config.output_dir << std::endl;
         std::filesystem::create_directories(config.output_dir);
-    if (config.remove_all_threat_feeds_on_run) remove_all_custom_threat_feeds();
+    }
+
+    if (config.remove_all_threat_feeds_on_run) {
+        std::cout << "Removing old threat feeds...\n" << std::endl;
+        remove_all_custom_threat_feeds();
+    }
 
     std::cout << "Consolidating data..." << std::endl;
     merge();
@@ -58,10 +67,10 @@ void FortiHole::process_config() {
     std::cout << "Processing config file...\n" << std::endl;
     for (const auto& entry : config.blocklist_sources) {
         for (const auto& src : entry.sources) {
-            requests.push_back({entry.url + "/" + src.name + entry.postfix + ".txt",
-                                src.security_level, ""});
+            requests.push_back({entry.url + "/" + src.name + entry.postfix + ".txt", src.security_level, ""});
         }
     }
+    lists_by_security_level = std::vector<std::unordered_set<std::string>>(requests.size());
 }
 
 size_t write_callback(void* ptr, size_t size, size_t nmemb, void* userdata) {
@@ -71,8 +80,6 @@ size_t write_callback(void* ptr, size_t size, size_t nmemb, void* userdata) {
 }
 
 void FortiHole::fetch_multi() {
-    std::cout << "Scraping blocklists...\n" << std::endl;
-
     curl_global_init(CURL_GLOBAL_ALL);
 
     auto multi_handle = std::unique_ptr<CURLM, decltype(&curl_multi_cleanup)>(curl_multi_init(), curl_multi_cleanup);
@@ -128,44 +135,41 @@ void FortiHole::fetch_multi() {
 }
 
 void FortiHole::process_multi() {
-    std::cout << "Parsing response data...\n" << std::endl;
     for (auto& request : requests) {
-        process_domains(request.response, lists_by_security_level[request.security_level]);
+        auto content = request.response;
+        const size_t length = content.length();
+        const size_t num_threads = std::thread::hardware_concurrency();
+        const size_t chunk_size = length / num_threads;
+
+        std::vector<std::future<void>> futures;
+
+        for (size_t i = 0; i < num_threads; ++i) {
+            size_t start = i * chunk_size;
+            size_t end = (i + 1 == num_threads) ? length : (i + 1) * chunk_size;
+
+            if (end != length && end > 0) while (end < length && content[end] != ' ' && content[end] != '\n') ++end;
+
+            std::string chunk = content.substr(start, end - start);
+
+            futures.push_back(std::async(std::launch::async, [this, &request, chunk]() {
+                std::smatch matches;
+                std::string::const_iterator searchStart(chunk.cbegin());
+                while (std::regex_search(searchStart, chunk.cend(), matches, domain_regex)) {
+                    std::string domain = matches[1].str();
+                    if (std::regex_match(domain, valid_dns_regex)) {
+                        std::scoped_lock lock(mutex);
+                        lists_by_security_level[request.security_level].insert(domain);
+                    }
+                    searchStart = matches.suffix().first;
+                }
+            }));
+        }
+
+        for (auto& future : futures) future.get();
+
         std::cout << "Finished: " << request.url << std::endl;
     }
     std::cout << "\nBlocklist processing successfully completed...\n" << std::endl;
-}
-
-void FortiHole::process_domains(const std::string& content, std::unordered_set<std::string>& target_set) {
-    const size_t length = content.length();
-    const size_t num_threads = std::thread::hardware_concurrency();
-    const size_t chunk_size = length / num_threads;
-
-    std::vector<std::future<void>> futures;
-
-    for (size_t i = 0; i < num_threads; ++i) {
-        size_t start = i * chunk_size;
-        size_t end = (i + 1 == num_threads) ? length : (i + 1) * chunk_size;
-
-        if (end != length && end > 0) while (end < length && content[end] != ' ' && content[end] != '\n') ++end;
-
-        std::string chunk = content.substr(start, end - start);
-
-        futures.push_back(std::async(std::launch::async, [this, &target_set, chunk]() {
-            std::smatch matches;
-            std::string::const_iterator searchStart(chunk.cbegin());
-            while (std::regex_search(searchStart, chunk.cend(), matches, domain_regex)) {
-                std::string domain = matches[1].str();
-                if (std::regex_match(domain, valid_dns_regex)) {
-                    std::scoped_lock lock(mutex);
-                    target_set.insert(domain);
-                }
-                searchStart = matches.suffix().first;
-            }
-        }));
-    }
-
-    for (auto& future : futures) future.get();
 }
 
 void FortiHole::merge() {
@@ -180,7 +184,7 @@ void FortiHole::build_threat_feed_info() {
     info_by_security_level.reserve(lists_by_security_level.size());
     unsigned int category = config.categories.base;
     for (auto & lines : lists_by_security_level) {
-        auto total_lines = lines.second.size();
+        auto total_lines = lines.size();
         auto file_count = std::max((total_lines + MAX_LINES_PER_FILE - 1) / MAX_LINES_PER_FILE, static_cast<size_t>(1));
         info_by_security_level.emplace_back(total_lines, file_count, category);
         category += file_count;
@@ -234,7 +238,7 @@ void FortiHole::enable_filters_and_policies() {
 }
 
 void FortiHole::update_threat_feeds() {
-    for (const auto& [security_level, _] : lists_by_security_level) {
+    for (unsigned int security_level = 0; security_level < info_by_security_level.size(); ++security_level) {
         auto info = info_by_security_level[security_level];
 
         std::cout << "Security Level " << security_level

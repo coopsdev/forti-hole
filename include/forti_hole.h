@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <regex>
 #include <unordered_set>
+#include <vector>
 
 class FortiHole {
 
@@ -35,20 +36,22 @@ class FortiHole {
 
     Config config;
     std::vector<Request> requests{};
-    std::unordered_map<unsigned int, std::unordered_set<std::string>> lists_by_security_level;
+    std::vector<std::unordered_set<std::string>> lists_by_security_level{};
     std::vector<ThreatFeedInfo> info_by_security_level{};
     std::mutex mutex;
 
+    // scraping
     void process_config();
     void fetch_multi();
     void process_multi();
-    void process_domains(const std::string& content, std::unordered_set<std::string>& target_set);
 
+    // forti-hole
     void merge();
     void build_threat_feed_info();
     void create_threat_feeds();
     void enable_filters_and_policies();
     void update_threat_feeds();
+
     void create_file(const std::string& filename, const std::vector<std::string>& lines) const;
     void remove_extra_files(unsigned int security_level, unsigned int file_index);
 

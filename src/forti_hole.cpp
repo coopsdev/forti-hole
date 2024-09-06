@@ -31,7 +31,7 @@ void FortiHole::operator()() {
 
     if (config.admin.enable_admin_access_control) {
         std::cout << "Scanning admin access policy sources..." << std::endl;
-
+        allow_admin_sources();
     }
 
     std::cout << "Starting blocklist scraping process...\n" << std::endl;

@@ -109,7 +109,7 @@ struct Config {
     explicit Config(const YAML::Node& node) { *this = yamlToJson(node); }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Config, fortigate, output_dir, naming_convention, write_files_to_disk,
-                                                remove_all_threat_feeds_on_run, categories,
+                                                remove_all_threat_feeds_on_run, admin, categories,
                                                 forti_hole_automated_dns_filters, blocklist_sources)
 };
 

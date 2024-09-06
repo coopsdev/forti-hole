@@ -79,11 +79,13 @@ size_t write_callback(void* ptr, size_t size, size_t nmemb, void* userdata) {
 void FortiHole::allow_admin_sources() {
     if (!config.admin.enable_admin_access_control) return;
 
+    auto admin = System::Admin::API::get(config.admin.api_admin);
+
     for (const auto& source : config.admin.sources) {
 
         // Check if the source is a valid IPv4 or IPv6 subnet
         if (std::regex_match(source, ipv4_subnet) || std::regex_match(source, ipv6_subnet)) {
-            System::Admin::API::get(config.admin.api_admin).trust(source);
+            admin.trust(source);
             std::cout << "Trusted source: " << source << std::endl;
             continue;
         }
@@ -100,7 +102,7 @@ void FortiHole::allow_admin_sources() {
                 // Check if the line is a valid IPv4 or IPv6 subnet
                 bool is_ipv4 = std::regex_match(line, ipv4_subnet);
                 if (is_ipv4 || std::regex_match(line, ipv6_subnet)) {
-                    System::Admin::API::get(config.admin.api_admin).trust(line);
+                    admin.trust(line);
                     std::string type = is_ipv4 ? "IPv4 subnet" : "IPv6 subnet";
                     std::cout << "Allowed " << type << ": " << line << " for admin access." << std::endl;
                 } else {
@@ -109,6 +111,8 @@ void FortiHole::allow_admin_sources() {
             }
         }
     }
+
+    admin.update();
 }
 
 void FortiHole::process_config() {

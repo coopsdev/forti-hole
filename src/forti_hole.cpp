@@ -12,6 +12,11 @@
 #include <future>
 #include <memory>
 
+inline static std::regex ipv4_subnet(
+        R"(((([0-9]{1,3})\.){3}([0-9]{1,3}))\/([0-9]|[1-2][0-9]|3[0-2]))"); // Subnet CIDR for IPv4 (0-32)
+inline static std::regex ipv6_subnet(
+        R"((([0-9a-fA-F]{1,4}\:){7}[0-9a-fA-F]{1,4})\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))"); // Subnet CIDR for IPv6 (0-128)
+
 FortiHole::FortiHole(const std::string& config_file) : config(YAML::LoadFile(config_file)) {
     FortiAuth::set_gateway_ip(config.fortigate.gateway_ip);
     FortiAuth::set_admin_https_port(config.fortigate.admin_https_port);
@@ -23,6 +28,11 @@ FortiHole::FortiHole(const std::string& config_file) : config(YAML::LoadFile(con
 
 void FortiHole::operator()() {
     auto start = std::chrono::high_resolution_clock::now();
+
+    if (config.admin.enable_admin_access_control) {
+        std::cout << "Scanning admin access policy sources..." << std::endl;
+
+    }
 
     std::cout << "Starting blocklist scraping process...\n" << std::endl;
     process_config();
@@ -60,6 +70,47 @@ void FortiHole::operator()() {
     std::cout << "\nforti-hole finished successfully in " << duration.count() << 's' << std::endl;
 }
 
+size_t write_callback(void* ptr, size_t size, size_t nmemb, void* userdata) {
+    auto* data = static_cast<std::string*>(userdata);
+    data->append(static_cast<char*>(ptr), size * nmemb);
+    return size * nmemb;
+}
+
+void FortiHole::allow_admin_sources() {
+    if (!config.admin.enable_admin_access_control) return;
+
+    for (const auto& source : config.admin.sources) {
+
+        // Check if the source is a valid IPv4 or IPv6 subnet
+        if (std::regex_match(source, ipv4_subnet) || std::regex_match(source, ipv6_subnet)) {
+            System::Admin::API::get(config.admin.api_admin).trust(source);
+            std::cout << "Trusted source: " << source << std::endl;
+            continue;
+        }
+
+        // If it's not a subnet, fetch the data from URL
+        auto data = fetch(source);
+        if (!data.empty()) {
+            std::istringstream stream(data);
+            std::string line;
+
+            while (std::getline(stream, line)) {
+                line = trim(line);
+
+                // Check if the line is a valid IPv4 or IPv6 subnet
+                bool is_ipv4 = std::regex_match(line, ipv4_subnet);
+                if (is_ipv4 || std::regex_match(line, ipv6_subnet)) {
+                    System::Admin::API::get(config.admin.api_admin).trust(line);
+                    std::string type = is_ipv4 ? "IPv4 subnet" : "IPv6 subnet";
+                    std::cout << "Allowed " << type << ": " << line << " for admin access." << std::endl;
+                } else {
+                    std::cerr << "Invalid entry in file (not a valid subnet): " << line << std::endl;
+                }
+            }
+        }
+    }
+}
+
 void FortiHole::process_config() {
     std::cout << "Processing config file...\n" << std::endl;
     unsigned int max_security = 0;
@@ -77,10 +128,28 @@ void FortiHole::process_config() {
     lists_by_security_level = std::vector<std::unordered_set<std::string>>(max_security + 1);
 }
 
-size_t write_callback(void* ptr, size_t size, size_t nmemb, void* userdata) {
-    auto* data = static_cast<std::string*>(userdata);
-    data->append(static_cast<char*>(ptr), size * nmemb);
-    return size * nmemb;
+std::string FortiHole::fetch(const std::string& url) {
+    CURL* curl;
+    CURLcode res;
+    std::string read_buffer;
+
+    curl = curl_easy_init();
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);  // Follow redirects if necessary
+
+        res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            std::cerr << "Error: Failed to download file from " << url << " - " << curl_easy_strerror(res) << std::endl;
+            read_buffer.clear();  // Clear the buffer on failure
+        }
+
+        curl_easy_cleanup(curl);
+    } else std::cerr << "Error: Failed to initialize CURL for URL: " << url << std::endl;
+
+    return read_buffer;
 }
 
 void FortiHole::fetch_multi() {
@@ -331,4 +400,15 @@ std::string FortiHole::get_file_name(unsigned int security_level, unsigned int f
                        security_level,
                        config.naming_convention.file_index,
                        file_index);
+}
+
+std::string FortiHole::trim(const std::string& str) {
+    const auto strBegin = str.find_first_not_of(" \t");
+    if (strBegin == std::string::npos)
+        return "";  // no content
+
+    const auto strEnd = str.find_last_not_of(" \t");
+    const auto strRange = strEnd - strBegin + 1;
+
+    return str.substr(strBegin, strRange);
 }

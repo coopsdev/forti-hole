@@ -248,7 +248,7 @@ ensure_default_profile
 create_and_configure_release_profile
 
 # Install dependencies using Conan
-conan install . --build=missing || { echo "Conan install failed"; exit 1; }
+conan install . -u --build=missing || { echo "Conan install failed"; exit 1; }
 
 # Build the project for release
 conan build . -pr:a release --build=missing || { echo "Build failed"; exit 1; }

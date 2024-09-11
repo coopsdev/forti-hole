@@ -320,6 +320,22 @@ void FortiHole::enable_filters_and_policies() {
     }
 }
 
+void FortiHole::update_threat_feeds() {
+    for (unsigned int security_level = 0; security_level < info_by_security_level.size(); ++security_level) {
+        auto& info = info_by_security_level[security_level];
+        std::cout << "Security Level " << security_level
+                  << ": { "
+                  << "Files: " << info.file_count
+                  << ", LPF: " << info.lines_per_file
+                  << " }" << std::endl;
+
+        threat_feed_futures.reserve(info.file_count);
+        build_threat_feed_futures(security_level);
+        process_threat_feed_futures(security_level);
+        threat_feed_futures.clear();
+    }
+}
+
 void FortiHole::build_threat_feed_futures(unsigned int security_level) {
     auto iter = lists_by_security_level[security_level].begin();
     auto& info = info_by_security_level[security_level];
@@ -347,29 +363,19 @@ void FortiHole::build_threat_feed_futures(unsigned int security_level) {
     }
 }
 
-void FortiHole::update_threat_feeds() {
-    for (unsigned int security_level = 0; security_level < info_by_security_level.size(); ++security_level) {
-        auto info = info_by_security_level[security_level];
+void FortiHole::process_threat_feed_futures(unsigned int security_level) {
+    for (auto& future : threat_feed_futures) {
+        const auto& [filename, to_upload] = future.get();
+        if (config.write_files_to_disk) create_file(filename, to_upload);
+        ThreatFeed::update_feed({{filename, to_upload}});
+        std::cout << "Successfully pushed to Fortigate: " << filename << std::endl;
 
-        std::cout << "Security Level " << security_level
-                  << ": { "
-                  << "Files: " << info.file_count
-                  << ", LPF: " << info.lines_per_file
-                  << " }" << std::endl;
-
-        for (auto& future : threat_feed_futures) {
-            const auto& [filename, to_upload] = future.get();
-            if (config.write_files_to_disk) create_file(filename, to_upload);
-            ThreatFeed::update_feed({{filename, to_upload}});
-            std::cout << "Successfully pushed to Fortigate: " << filename << std::endl;
-
-            // give the FortiGate a chance to process the new data,
-            // prevents network interruptions from buffer overflow
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        }
-
-        remove_extra_files(security_level, info.file_count + 1);
+        // give the FortiGate a chance to process the new data,
+        // prevents network interruptions from buffer overflow
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
+
+    remove_extra_files(security_level, info_by_security_level[security_level].file_count + 1);
 }
 
 void FortiHole::create_file(const std::string& filename, const std::vector<std::string>& lines) const {

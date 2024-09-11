@@ -62,8 +62,9 @@ class FortiHole {
     void build_threat_feed_info();
     void create_threat_feeds();
     void enable_filters_and_policies();
-    void build_threat_feed_futures(unsigned int security_level);
     void update_threat_feeds();
+    void build_threat_feed_futures(unsigned int security_level);
+    void process_threat_feed_futures(unsigned int security_level);
 
     void create_file(const std::string& filename, const std::vector<std::string>& lines) const;
     void remove_extra_files(unsigned int security_level, unsigned int file_index);

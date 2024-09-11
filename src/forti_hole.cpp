@@ -368,11 +368,11 @@ void FortiHole::process_threat_feed_futures(unsigned int security_level) {
         const auto& [filename, to_upload] = future.get();
         if (config.write_files_to_disk) create_file(filename, to_upload);
         ThreatFeed::update_feed({{filename, to_upload}});
-        std::cout << "Successfully pushed to Fortigate: " << filename << std::endl;
+        std::cout << "\nSuccessfully pushed to Fortigate: " << filename << std::endl;
 
         // give the FortiGate a chance to process the new data,
         // prevents network interruptions from buffer overflow
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     remove_extra_files(security_level, info_by_security_level[security_level].file_count + 1);

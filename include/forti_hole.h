@@ -14,40 +14,25 @@
 #include <queue>
 #include <utility>
 #include <future>
+#include "ThreadPool.h"
+#include <memory>
 
 class FortiHole {
 
-    inline static std::regex domain_regex{R"(\|\|([^\^]*?)\^)"};
-    inline static std::regex valid_dns_regex{R"(^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$)"};
-
-    struct Request {
-        std::string url;
-        unsigned int security_level;
-        std::string response;
-    };
-
     struct RequestComparator {
-        bool operator()(const Request& a, const Request& b) { return a.security_level < b.security_level; }
-    };
-
-    struct ThreatFeedInfo {
-        size_t total_lines, file_count, lines_per_file, extra, category_base;
-
-        ThreatFeedInfo(unsigned int total_lines, unsigned int file_count, unsigned int category_base) :
-                total_lines(total_lines), file_count(file_count),
-                lines_per_file(total_lines / file_count), extra(total_lines % file_count),
-                category_base(category_base) {}
+        bool operator()(const FortiHoleRequest& a, const FortiHoleRequest& b) { return a.security_level < b.security_level; }
     };
 
     static constexpr unsigned int MAX_LINES_PER_FILE = 131000;
 
     Config config;
-    std::vector<Request> requests{};
-    std::vector<std::unordered_set<std::string>> lists_by_security_level{};
+    std::vector<FortiHoleRequest> requests{};
+    std::shared_ptr<std::vector<std::unordered_set<std::string>>> lists_by_security_level{};
     std::vector<ThreatFeedInfo> info_by_security_level{};
-    std::vector<std::future<std::pair<std::string, std::vector<std::string>>>> threat_feed_futures{};
+    std::vector<std::future<ExpectedFuture>> futures{};
+    ThreadPool threadPool{};
     unsigned int total_num_files{};
-    std::mutex mutex;
+    std::shared_ptr<std::vector<std::mutex>> locks{};
 
     // admin
     void allow_admin_sources();
@@ -75,6 +60,7 @@ class FortiHole {
     static void remove_all_custom_threat_feeds();
 
 public:
+
     explicit FortiHole(const std::string& config_file = "config.yaml");
 
     void operator()();

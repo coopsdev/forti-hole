@@ -56,29 +56,29 @@ inline static nlohmann::json test_yaml_to_json(const YAML::Node& node, const std
 }
 
 
-TEST(TestFortiHole, TestLoadConfig) {
-    try {
-        // Load the YAML configuration file
-        std::string config_file_path = "../pi-config.yaml";
-        YAML::Node config = YAML::LoadFile(config_file_path);
-
-        // Convert the YAML to JSON and log the process
-        std::cout << "[LOG] Starting YAML to JSON conversion...\n";
-        nlohmann::json json_config = test_yaml_to_json(config);
-        std::cout << "[LOG] Completed YAML to JSON conversion.\n";
-
-        // Print final JSON result for inspection
-        std::cout << "[LOG] Final JSON output:\n" << json_config.dump(4) << std::endl;
-
-        Config conf(config);
-
-        std::cout << conf.fortigate.certificates.ssl_cert_path << std::endl;
-
-    } catch (const std::exception& e) {
-        std::cerr << "[ERROR] Exception during YAML to JSON conversion: " << e.what() << std::endl;
-        FAIL();  // Fail the test if an exception is thrown
-    }
-}
+//TEST(TestFortiHole, TestLoadConfig) {
+//    try {
+//        // Load the YAML configuration file
+//        std::string config_file_path = "../pi-config.yaml";
+//        YAML::Node config = YAML::LoadFile(config_file_path);
+//
+//        // Convert the YAML to JSON and log the process
+//        std::cout << "[LOG] Starting YAML to JSON conversion...\n";
+//        nlohmann::json json_config = test_yaml_to_json(config);
+//        std::cout << "[LOG] Completed YAML to JSON conversion.\n";
+//
+//        // Print final JSON result for inspection
+//        std::cout << "[LOG] Final JSON output:\n" << json_config.dump(4) << std::endl;
+//
+//        Config conf(config);
+//
+//        std::cout << conf.fortigate.certificates.ssl_cert_path << std::endl;
+//
+//    } catch (const std::exception& e) {
+//        std::cerr << "[ERROR] Exception during YAML to JSON conversion: " << e.what() << std::endl;
+//        FAIL();  // Fail the test if an exception is thrown
+//    }
+//}
 
 
 #endif

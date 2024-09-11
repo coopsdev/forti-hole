@@ -24,18 +24,13 @@ FortiHole::FortiHole(const std::string& config_file) : config(YAML::LoadFile(con
     FortiAuth::set_ssl_cert_path(config.fortigate.certificates.ssl_cert_path);
     FortiAuth::set_api_key(config.fortigate.api_key);
     FortiAuth::set_cert_password(config.fortigate.certificates.ssl_cert_password);
+    process_config();
 }
 
 void FortiHole::operator()() {
     auto start = std::chrono::high_resolution_clock::now();
 
-    if (config.admin.enable_admin_access_control) {
-        std::cout << "Scanning admin access policy sources..." << std::endl;
-        allow_admin_sources();
-    }
-
     std::cout << "Starting blocklist scraping process...\n" << std::endl;
-    process_config();
 
     std::cout << "Scraping blocklists...\n" << std::endl;
     fetch_multi();
@@ -77,8 +72,6 @@ size_t write_callback(void* ptr, size_t size, size_t nmemb, void* userdata) {
 }
 
 void FortiHole::allow_admin_sources() {
-    if (!config.admin.enable_admin_access_control) return;
-
     auto admin = System::Admin::API::get(config.admin.api_admin);
 
     for (const auto& source : config.admin.sources) {
@@ -128,8 +121,12 @@ void FortiHole::process_config() {
     // sort the requests to process lowest-security first
     std::sort(requests.begin(), requests.end(), RequestComparator());
 
+    unsigned int total_size = max_security + 1;
+
     // instantiate the main lists with the number of security level + 1
-    lists_by_security_level = std::vector<std::unordered_set<std::string>>(max_security + 1);
+    lists_by_security_level = std::make_shared<std::vector<std::unordered_set<std::string>>>(total_size);
+
+    locks = std::make_shared<std::vector<std::mutex>>(total_size);
 }
 
 std::string FortiHole::fetch(const std::string& url) {
@@ -212,49 +209,30 @@ void FortiHole::fetch_multi() {
 }
 
 void FortiHole::process_multi() {
-    for (auto& request : requests) {
-        auto content = request.response;
-        const size_t length = content.length();
-        const size_t num_threads = std::thread::hardware_concurrency();
-        const size_t chunk_size = length / num_threads;
+    const size_t num_threads = std::thread::hardware_concurrency();
+    futures.reserve(num_threads);
 
-        std::vector<std::future<void>> futures;
+    for (auto& request : requests) {
+        auto& content = request.response;
+        const size_t length = content.length();
+        const size_t chunk_size = length / num_threads;
 
         for (size_t i = 0; i < num_threads; ++i) {
             size_t start = i * chunk_size;
             size_t end = (i + 1 == num_threads) ? length : (i + 1) * chunk_size;
 
-            if (end != length && end > 0) while (end < length && content[end] != ' ' && content[end] != '\n') ++end;
+            // splits on spaces or newlines
+            if (end != length && end > 0)
+                while (end < length && content[end] != ' ' && content[end] != '\n') ++end;
 
-            std::string chunk = content.substr(start, end - start);
-
-            futures.push_back(std::async(std::launch::async, [this, &request, chunk]() {
-                std::smatch matches;
-                std::string::const_iterator searchStart(chunk.cbegin());
-                while (std::regex_search(searchStart, chunk.cend(), matches, domain_regex)) {
-                    std::string domain = matches[1].str();
-
-                    unsigned int lower_security_levels = request.security_level;
-                    bool match_found = false;
-                    while (lower_security_levels > 0) {
-                        if (lists_by_security_level[--lower_security_levels].contains(domain)) {
-                            match_found = true;
-                            break;
-                        }
-                    }
-
-                    searchStart = matches.suffix().first;  // leave this where it is
-
-                    if (match_found) continue;
-                    else if (std::regex_match(domain, valid_dns_regex)) {
-                        std::scoped_lock lock(mutex);
-                        lists_by_security_level[request.security_level].insert(domain);
-                    }
-                }
-            }));
+            TaskWrapper task(std::make_unique<ResponseParser>(lists_by_security_level, request, start, end, locks));
+            futures.push_back(task.getFuture());
+            threadPool.submit(task);
         }
 
+        // Ensure all futures are completed before continuing.
         for (auto& future : futures) future.get();
+        futures.clear();
 
         std::cout << "Finished: " << request.url << std::endl;
     }
@@ -262,10 +240,10 @@ void FortiHole::process_multi() {
 }
 
 void FortiHole::build_threat_feed_info() {
-    info_by_security_level.reserve(lists_by_security_level.size());
+    info_by_security_level.reserve(lists_by_security_level->size());
     unsigned int category = config.categories.base;
     total_num_files = 0;
-    for (auto & lines : lists_by_security_level) {
+    for (auto & lines : *lists_by_security_level) {
         auto total_lines = lines.size();
         auto file_count = std::max((total_lines + MAX_LINES_PER_FILE - 1) / MAX_LINES_PER_FILE, static_cast<size_t>(1));
         info_by_security_level.emplace_back(total_lines, file_count, category);
@@ -329,46 +307,37 @@ void FortiHole::update_threat_feeds() {
                   << ", LPF: " << info.lines_per_file
                   << " }" << std::endl;
 
-        threat_feed_futures.reserve(info.file_count);
+        futures.reserve(info.file_count);
         build_threat_feed_futures(security_level);
         process_threat_feed_futures(security_level);
-        threat_feed_futures.clear();
+        futures.clear();
     }
 }
 
 void FortiHole::build_threat_feed_futures(unsigned int security_level) {
-    auto iter = lists_by_security_level[security_level].begin();
     auto& info = info_by_security_level[security_level];
 
-    auto build_file = [&, this](unsigned int file_index) {
-        auto filename = get_file_name(security_level, file_index + 1);
-
-        std::vector<std::string> to_upload;
-        to_upload.reserve(info.lines_per_file + 1);
-
-        size_t count = info.lines_per_file + (file_index < info.extra ? 1 : 0);
-        for (size_t j = 0; j < count; ++j) {
-            if (iter == lists_by_security_level[security_level].end()) break;
-            to_upload.push_back(*iter);
-            ++iter;
-        }
-
-        std::cout << "Built file: " << filename << " with " << to_upload.size() << " lines.\n" << std::endl;
-
-        return std::make_pair(filename, to_upload);
-    };
-
     for (size_t file_index = 0; file_index < info.file_count; ++file_index) {
-        threat_feed_futures.emplace_back(std::async(std::launch::async, build_file, file_index));
+        auto filename = get_file_name(security_level, file_index + 1);
+        auto task = TaskWrapper(std::make_unique<ThreatFeedBuilder>(lists_by_security_level,
+                                                                    filename, info, security_level, file_index));
+        futures.emplace_back(task.getFuture());
+        threadPool.submit(task);
     }
 }
 
 void FortiHole::process_threat_feed_futures(unsigned int security_level) {
-    for (auto& future : threat_feed_futures) {
-        const auto& [filename, to_upload] = future.get();
-        if (config.write_files_to_disk) create_file(filename, to_upload);
-        ThreatFeed::update_feed({{filename, to_upload}});
-        std::cout << "Successfully pushed to Fortigate: " << filename << '\n' << std::endl;
+    for (auto& future : futures) {
+        auto res = future.get();
+
+        if (auto result = std::get_if<std::pair<std::string, std::vector<std::string>>>(&res)) {
+
+            const auto& [filename, to_upload] = *result;
+            if (config.write_files_to_disk) create_file(filename, to_upload);
+            ThreatFeed::update_feed({{filename, to_upload}});
+
+            std::cout << "Successfully pushed to Fortigate: " << filename << '\n' << std::endl;
+        } else std::cerr << "Error: Unexpected result type from future!" << std::endl;
     }
 
     remove_extra_files(security_level, info_by_security_level[security_level].file_count + 1);

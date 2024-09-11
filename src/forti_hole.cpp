@@ -9,8 +9,8 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <cstdlib>
-#include <future>
 #include <memory>
+#include <functional>
 
 inline static std::regex ipv4_subnet(
         R"(((([0-9]{1,3})\.){3}([0-9]{1,3}))\/([0-9]|[1-2][0-9]|3[0-2]))"); // Subnet CIDR for IPv4 (0-32)
@@ -264,11 +264,13 @@ void FortiHole::process_multi() {
 void FortiHole::build_threat_feed_info() {
     info_by_security_level.reserve(lists_by_security_level.size());
     unsigned int category = config.categories.base;
+    total_num_files = 0;
     for (auto & lines : lists_by_security_level) {
         auto total_lines = lines.size();
         auto file_count = std::max((total_lines + MAX_LINES_PER_FILE - 1) / MAX_LINES_PER_FILE, static_cast<size_t>(1));
         info_by_security_level.emplace_back(total_lines, file_count, category);
         category += file_count;
+        total_num_files += file_count;
     }
 }
 
@@ -318,6 +320,33 @@ void FortiHole::enable_filters_and_policies() {
     }
 }
 
+void FortiHole::build_threat_feed_futures(unsigned int security_level) {
+    auto iter = lists_by_security_level[security_level].begin();
+    auto& info = info_by_security_level[security_level];
+
+    auto build_file = [&, this](unsigned int file_index) {
+        auto filename = get_file_name(security_level, file_index + 1);
+
+        std::vector<std::string> to_upload;
+        to_upload.reserve(info.lines_per_file + 1);
+
+        size_t count = info.lines_per_file + (file_index < info.extra ? 1 : 0);
+        for (size_t j = 0; j < count; ++j) {
+            if (iter == lists_by_security_level[security_level].end()) break;
+            to_upload.push_back(*iter);
+            ++iter;
+        }
+
+        std::cout << "\nBuilt file: " << filename << " with " << to_upload.size() << " lines." << std::endl;
+
+        return std::make_pair(filename, to_upload);
+    };
+
+    for (size_t file_index = 0; file_index < info.file_count; ++file_index) {
+        threat_feed_futures.emplace_back(std::async(std::launch::async, build_file, file_index));
+    }
+}
+
 void FortiHole::update_threat_feeds() {
     for (unsigned int security_level = 0; security_level < info_by_security_level.size(); ++security_level) {
         auto info = info_by_security_level[security_level];
@@ -328,32 +357,15 @@ void FortiHole::update_threat_feeds() {
                   << ", LPF: " << info.lines_per_file
                   << " }" << std::endl;
 
-        std::vector<std::string> to_upload;
-        to_upload.reserve(info.lines_per_file + 1);
-
-        auto iter = lists_by_security_level[security_level].begin();
-        std::cout << "Security Level " << security_level << ", size: " << lists_by_security_level[security_level].size() << std::endl;
-        for (size_t i = 0; i < info.file_count; ++i) {
-            auto filename = get_file_name(security_level, i + 1);
-
-            size_t count = info.lines_per_file + (i < info.extra ? 1 : 0);
-            for (size_t j = 0; j < count; ++j) {
-                if (iter == lists_by_security_level[security_level].end()) break;
-                to_upload.push_back(*iter);
-                ++iter;
-            }
-
-            std::cout << "\nBuilt file: " << filename << " with " << to_upload.size() << " lines." << std::endl;
-
+        for (auto& future : threat_feed_futures) {
+            const auto& [filename, to_upload] = future.get();
             if (config.write_files_to_disk) create_file(filename, to_upload);
             ThreatFeed::update_feed({{filename, to_upload}});
             std::cout << "Successfully pushed to Fortigate: " << filename << std::endl;
 
-            to_upload.clear();
-
             // give the FortiGate a chance to process the new data,
             // prevents network interruptions from buffer overflow
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
 
         remove_extra_files(security_level, info.file_count + 1);

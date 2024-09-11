@@ -11,6 +11,9 @@
 #include <regex>
 #include <unordered_set>
 #include <vector>
+#include <queue>
+#include <utility>
+#include <future>
 
 class FortiHole {
 
@@ -42,6 +45,8 @@ class FortiHole {
     std::vector<Request> requests{};
     std::vector<std::unordered_set<std::string>> lists_by_security_level{};
     std::vector<ThreatFeedInfo> info_by_security_level{};
+    std::vector<std::future<std::pair<std::string, std::vector<std::string>>>> threat_feed_futures;
+    unsigned int total_num_files{};
     std::mutex mutex;
 
     // admin
@@ -57,6 +62,7 @@ class FortiHole {
     void build_threat_feed_info();
     void create_threat_feeds();
     void enable_filters_and_policies();
+    void build_threat_feed_futures(unsigned int security_level);
     void update_threat_feeds();
 
     void create_file(const std::string& filename, const std::vector<std::string>& lines) const;

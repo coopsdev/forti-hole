@@ -15,8 +15,8 @@
 
 using ExpectedFuture = std::variant<bool, std::pair<std::string, std::vector<std::string>>>;
 
-inline static std::regex domain_regex{R"(\|\|([^\^]*?)\^)"};
-inline static std::regex valid_dns_regex{R"(^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$)"};
+inline static const std::regex domain_regex{R"(\|\|([^\^]*?)\^)"};
+inline static const std::regex valid_dns_regex{R"(^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$)"};
 
 struct FortiHoleRequest {
     std::string url;

@@ -12,9 +12,9 @@
 #include <memory>
 #include <functional>
 
-inline static std::regex ipv4_subnet(
+inline static const std::regex ipv4_subnet(
         R"(((([0-9]{1,3})\.){3}([0-9]{1,3}))\/([0-9]|[1-2][0-9]|3[0-2]))"); // Subnet CIDR for IPv4 (0-32)
-inline static std::regex ipv6_subnet(
+inline static const std::regex ipv6_subnet(
         R"((([0-9a-fA-F]{1,4}\:){7}[0-9a-fA-F]{1,4})\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))"); // Subnet CIDR for IPv6 (0-128)
 
 FortiHole::FortiHole(const std::string& config_file) : config(YAML::LoadFile(config_file)) {

@@ -34,12 +34,8 @@ class FortiHole {
     unsigned int total_num_files{};
     std::shared_ptr<std::vector<std::mutex>> locks{};
 
-    // admin
-    void allow_admin_sources();
-
     // scraping
     void process_config();
-    static std::string fetch(const std::string& url);
     void fetch_multi();
     void process_multi();
 
@@ -54,7 +50,6 @@ class FortiHole {
     void create_file(const std::string& filename, const std::vector<std::string>& lines) const;
     void remove_extra_files(unsigned int security_level, unsigned int file_index);
 
-    static std::string trim(const std::string& str);
     std::string get_file_name(unsigned int security_level, unsigned int file_index);
 
     static void remove_all_custom_threat_feeds();

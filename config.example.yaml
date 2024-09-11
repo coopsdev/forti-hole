@@ -35,19 +35,6 @@ categories:
   max: 221  # FortiGate-defined maximum category value (do not change).
   base: 192  # User-defined base category for security level 0; categories grow upward from this base.
 
-# API admin management
-# This section is for automation of API admin access primarily for users whose forti-hole instance
-# is run on a remote server. The configuration makes it easy to hide your ddns admin panel behind
-# a cloudflare proxy. This will automatically allow cloudflare ip's API access, you must configure
-# a Cloudflare Web Application Filter (WAF) to then restrict the traffic to only your remote servers ip.
-admin:
-  enable_admin_access_control: false  # Enable this to auto add the following sources as trusted by the api admin.
-  api_admin: forti-hole  # The name of the API administrator associated with the api-key for forti-hole
-  sources:  # This can be a mix of https txt file links containing IPv4/v6 subnets, or individual IPv4/v6 subnets
-    - https://www.cloudflare.com/ips-v4/#  # Trust cloudflare IPv4 subnets (if you're behind a proxy).
-    - 192.168.1.111/32  # example IPv4 subnet
-    # - https://www.cloudflare.com/ips-v6/#
-
 # Configure automatic DNS-filter and firewall policy management.
 # Security levels start at 0 (lowest) and increase in strength. They should remain contiguous.
 forti_hole_automated_dns_filters:

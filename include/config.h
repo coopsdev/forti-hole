@@ -87,16 +87,7 @@ struct FortiGateConfig {
                                                 certificates)
 };
 
-struct Admin {
-    bool enable_admin_access_control = false;
-    std::string api_admin;
-    std::vector<std::string> sources;
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Admin, enable_admin_access_control, api_admin, sources)
-};
-
 struct Config {
-    Admin admin;
     FortiGateConfig fortigate;
     std::string output_dir;
     NamingConvention naming_convention;
@@ -109,7 +100,7 @@ struct Config {
     explicit Config(const YAML::Node& node) { *this = yamlToJson(node); }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Config, fortigate, output_dir, naming_convention, write_files_to_disk,
-                                                remove_all_threat_feeds_on_run, admin, categories,
+                                                remove_all_threat_feeds_on_run, categories,
                                                 forti_hole_automated_dns_filters, blocklist_sources)
 };
 

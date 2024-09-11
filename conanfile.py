@@ -5,7 +5,7 @@ from conan.tools.files import copy
 
 class Pkg(ConanFile):
     name = "forti_hole"
-    version = "0.2.2"
+    version = "0.3.0"
     author = "Cooper Larson | cooper.larson1@gmail.com"
     url = ""
     description = "Pi-hole inspired DNS blacklisting tool for FortiGate external connector threat feeds."

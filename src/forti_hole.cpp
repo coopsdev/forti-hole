@@ -353,7 +353,7 @@ void FortiHole::build_threat_feed_futures(unsigned int security_level) {
             ++iter;
         }
 
-        std::cout << "\nBuilt file: " << filename << " with " << to_upload.size() << " lines." << std::endl;
+        std::cout << "Built file: " << filename << " with " << to_upload.size() << " lines.\n" << std::endl;
 
         return std::make_pair(filename, to_upload);
     };
@@ -368,7 +368,7 @@ void FortiHole::process_threat_feed_futures(unsigned int security_level) {
         const auto& [filename, to_upload] = future.get();
         if (config.write_files_to_disk) create_file(filename, to_upload);
         ThreatFeed::update_feed({{filename, to_upload}});
-        std::cout << "\nSuccessfully pushed to Fortigate: " << filename << std::endl;
+        std::cout << "Successfully pushed to Fortigate: " << filename << '\n' << std::endl;
 
         // give the FortiGate a chance to process the new data,
         // prevents network interruptions from buffer overflow

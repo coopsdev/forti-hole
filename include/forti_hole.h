@@ -45,7 +45,7 @@ class FortiHole {
     std::vector<Request> requests{};
     std::vector<std::unordered_set<std::string>> lists_by_security_level{};
     std::vector<ThreatFeedInfo> info_by_security_level{};
-    std::vector<std::future<std::pair<std::string, std::vector<std::string>>>> threat_feed_futures;
+    std::vector<std::future<std::pair<std::string, std::vector<std::string>>>> threat_feed_futures{};
     unsigned int total_num_files{};
     std::mutex mutex;
 

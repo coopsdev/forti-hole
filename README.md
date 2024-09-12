@@ -1,5 +1,17 @@
 # forti-hole
 
+## Update 9/12/24
+### An inherent limitation in use
+* This solution works brilliantly for DNS filters when applied on a policy basis.
+* The problem: when your needs grow to desire DNS Service on Interface (ie an internal dns server with recursive resolution and caching), you quickly learn that DNS service on interface is an 'in-policy' route which bypasses firewall policy level filtering all interface devices.
+  * Additionally: if you apply a DNS filter to your interface DNS server, because its operating at the application layer (7), it causes all kinds of ssl warnings that make browsing impossible. The policy level filters evidently apply the filters on layer 2 the network layer which evades this detection.
+* You may see where this is going... you can't run a dns service on interface (layer 7) AND have policy level DNS filtering (layer 2) at the same time.
+
+### This is still a solid DNS solution, if you don't have an interface DNS server running natively on the fortigate.
+* As you can guess, pi-hole is once again the solution.
+* This is a solid DNS filter but its limited in scope and you end up needing an external DNS server to truly deliver a secure DNS environment.
+* I will leave this up and likely continue to maintain and evolve it to help *anyone who doesn't need to host a DNS server or pay for UTP* to get great DNS filtering served as Threat Feeds via API.
+
 ## Build and Installation Instructions
 
 ### 👯 Step 1: Clone the Repository
